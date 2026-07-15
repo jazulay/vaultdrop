@@ -2,10 +2,18 @@ import type { Metadata } from "next";
 import { Fraunces, Instrument_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
+// LCP budget (≤2.5s on 4G): the H1 is the LCP element and its paint waits on
+// this file, so ship one 600 instance instead of the variable font, and use
+// "optional" so a late arrival can't re-trigger LCP. Every display use on the
+// site is weight 600.
 const fraunces = Fraunces({
   subsets: ["latin"],
   variable: "--font-fraunces",
-  axes: ["opsz", "SOFT", "WONK"],
+  weight: "600",
+  display: "optional",
+  // Not preloaded: preloading pulls the font into the H1's simulated critical
+  // path. With display:optional the fallback paint is authoritative anyway.
+  preload: false,
 });
 
 const instrument = Instrument_Sans({

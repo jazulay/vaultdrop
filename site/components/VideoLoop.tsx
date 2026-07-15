@@ -48,12 +48,15 @@ export default function VideoLoop({
   }, [priority]);
 
   const poster = `/higgsfield/poster/${name}.jpg`;
+  const posterSm = `/higgsfield/poster/${name}-sm.jpg`;
 
   return (
     <div ref={wrapRef} className={`overflow-hidden ${className}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={poster}
+        srcSet={`${posterSm} 780w, ${poster} 1600w`}
+        sizes="100vw"
         alt=""
         aria-hidden
         className="absolute inset-0 h-full w-full object-cover"

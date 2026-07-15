@@ -24,7 +24,21 @@ export default function HeroOrrery() {
   const copyRef = useRef<HTMLDivElement>(null);
   const [docked, setDocked] = useState(false);
   const [reduced, setReduced] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const { state, stats } = useStats();
+
+  // Mount the hero video only after the page has loaded so it never
+  // competes with the poster (the LCP element) on slow connections.
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (document.readyState === "complete") {
+      setVideoReady(true);
+      return;
+    }
+    const onLoad = () => setVideoReady(true);
+    window.addEventListener("load", onLoad);
+    return () => window.removeEventListener("load", onLoad);
+  }, []);
 
   useEffect(() => {
     const rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -103,12 +117,14 @@ export default function HeroOrrery() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/higgsfield/poster/vaultdrop-hero-orrery-loop.jpg"
+              srcSet="/higgsfield/poster/vaultdrop-hero-orrery-loop-sm.jpg 780w, /higgsfield/poster/vaultdrop-hero-orrery-loop.jpg 1600w"
+              sizes="100vw"
               alt=""
               aria-hidden
               fetchPriority="high"
               className="absolute inset-0 h-full w-full object-cover"
             />
-            {!reduced && (
+            {!reduced && videoReady && (
               <video
                 ref={videoRef}
                 className="absolute inset-0 h-full w-full object-cover"
@@ -208,7 +224,7 @@ export default function HeroOrrery() {
         <div className="relative h-[120px]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/higgsfield/poster/vaultdrop-hero-orrery-loop.jpg"
+            src="/higgsfield/poster/vaultdrop-hero-orrery-loop-sm.jpg"
             alt=""
             aria-hidden
             loading="lazy"

@@ -60,6 +60,8 @@ export default function S7Cta() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/higgsfield/poster/vaultdrop-ignite-moment.jpg"
+          srcSet="/higgsfield/poster/vaultdrop-ignite-moment-sm.jpg 780w, /higgsfield/poster/vaultdrop-ignite-moment.jpg 1600w"
+          sizes="100vw"
           alt=""
           aria-hidden
           loading="lazy"
