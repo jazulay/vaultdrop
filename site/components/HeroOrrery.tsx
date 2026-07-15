@@ -3,19 +3,19 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useStats, PRELAUNCH, FIRST_DRAW_DATE } from "@/lib/api";
-import { formatSol } from "@/lib/format";
-import LiveSlot from "@/components/LiveSlot";
+import { useStats } from "@/lib/api";
+import { LAUNCHED, EPOCH1_UTC, CTA } from "@/lib/launch";
+import { formatSol, nextSunday18UTC } from "@/lib/format";
 import Countdown from "@/components/Countdown";
+import Odometer from "@/components/Odometer";
 
 gsap.registerPlugin(ScrollTrigger);
 
 /**
- * S1 — THE ORRERY.
- * A 220vh section. The hero video sits in a sticky 100vh frame; scrolling
- * scrubs it down to a corner-HUD-sized card (and decelerates playback).
- * When the section releases, a fixed HUD takes over at the same coordinates
- * and carries the Mega Vault number through the rest of the page.
+ * S1 — THE ORRERY. 160vh section (was 220vh — audit P0-3): the sticky hero
+ * shrinks toward the corner while the Reframe section is already arriving, so
+ * no scroll position renders a blank viewport. The fixed PiP ("Orbit ticker",
+ * audit §7.3) takes over when the section releases.
  */
 export default function HeroOrrery() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -23,12 +23,14 @@ export default function HeroOrrery() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const copyRef = useRef<HTMLDivElement>(null);
   const [docked, setDocked] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const [footerVisible, setFooterVisible] = useState(false);
   const [reduced, setReduced] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
   const { state, stats } = useStats();
 
-  // Mount the hero video only after the page has loaded so it never
-  // competes with the poster (the LCP element) on slow connections.
+  // Mount the hero video only after page load — it must never compete with
+  // the poster/H1 (LCP) on slow connections.
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if (document.readyState === "complete") {
@@ -44,7 +46,6 @@ export default function HeroOrrery() {
     const rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     setReduced(rm);
     if (rm) {
-      // Static layout: no scrub; HUD appears once the hero scrolls out.
       const io = new IntersectionObserver(
         (entries) => setDocked(!entries.some((e) => e.isIntersecting)),
         { threshold: 0 },
@@ -58,7 +59,6 @@ export default function HeroOrrery() {
     if (!section || !frame) return;
 
     const ctx = gsap.context(() => {
-      // HUD geometry: 200x120 card, 24px from bottom-right.
       const hudW = 200;
       const hudH = 120;
       const pad = 24;
@@ -70,7 +70,6 @@ export default function HeroOrrery() {
           end: "bottom bottom",
           scrub: true,
           onUpdate: (st) => {
-            // the orrery visibly decelerates as you begin scrolling
             if (videoRef.current) {
               videoRef.current.playbackRate = Math.max(0.25, 1 - st.progress * 0.75);
             }
@@ -98,15 +97,36 @@ export default function HeroOrrery() {
     return () => ctx.revert();
   }, []);
 
+  // PiP auto-hides while the footer is in view (audit P2-13).
+  useEffect(() => {
+    const footer = document.querySelector("footer");
+    if (!footer) return;
+    const io = new IntersectionObserver(
+      (entries) => setFooterVisible(entries.some((e) => e.isIntersecting)),
+      { threshold: 0 },
+    );
+    io.observe(footer);
+    return () => io.disconnect();
+  }, []);
+
   const megaValue =
     state === "live" && stats ? `${formatSol(stats.mega_balance_sol)} SOL` : null;
-  const tvlValue =
-    state === "live" && stats ? `${formatSol(stats.tvl_sol)} SOL` : null;
-  const nextDraw = state === "live" && stats ? stats.next_draw_utc : null;
+  const nextDraw =
+    state === "live" && stats
+      ? stats.next_draw_utc
+      : LAUNCHED
+        ? nextSunday18UTC(new Date()).toISOString()
+        : EPOCH1_UTC;
+
+  const scrollToMega = () => {
+    document.getElementById("mega")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const pipVisible = docked && !dismissed && !footerVisible;
 
   return (
     <>
-      <section ref={sectionRef} className={reduced ? "relative h-screen" : "relative h-[220vh]"}>
+      <section ref={sectionRef} className={reduced ? "relative h-screen" : "relative h-[160vh]"}>
         <div className="sticky top-0 h-screen">
           {/* the video frame that shrinks to the corner */}
           <div
@@ -119,8 +139,7 @@ export default function HeroOrrery() {
               src="/higgsfield/poster/vaultdrop-hero-orrery-loop.jpg"
               srcSet="/higgsfield/poster/vaultdrop-hero-orrery-loop-sm.jpg 780w, /higgsfield/poster/vaultdrop-hero-orrery-loop.jpg 1600w"
               sizes="100vw"
-              alt=""
-              aria-hidden
+              alt="Gold orrery with glass orbs orbiting a glowing core — the VaultDrop prize vault"
               fetchPriority="high"
               className="absolute inset-0 h-full w-full object-cover"
             />
@@ -132,6 +151,8 @@ export default function HeroOrrery() {
                 muted
                 loop
                 playsInline
+                disablePictureInPicture
+                disableRemotePlayback
                 preload="metadata"
                 poster="/higgsfield/poster/vaultdrop-hero-orrery-loop.jpg"
               >
@@ -142,7 +163,7 @@ export default function HeroOrrery() {
             <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-transparent to-ink/40" />
           </div>
 
-          {/* hero copy + live slots */}
+          {/* hero copy */}
           <div
             ref={copyRef}
             className="relative z-10 mx-auto flex h-full max-w-6xl flex-col items-start justify-end px-6 pb-16 sm:justify-center sm:pb-0"
@@ -152,8 +173,9 @@ export default function HeroOrrery() {
               <br />
               <span className="text-gold">Sometimes win big.</span>
             </h1>
-            <p className="mt-6 max-w-md text-lg text-bone/80 sm:text-xl">
-              Prize savings on Solana. Withdraw anytime.
+            <p className="mt-6 max-w-lg text-lg text-bone/80 sm:text-xl">
+              Your staking yield becomes weekly lottery tickets. Your SOL stays
+              yours — withdraw anytime.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-4">
@@ -161,7 +183,7 @@ export default function HeroOrrery() {
                 href="#waitlist"
                 className="rounded-full bg-gold px-8 py-3.5 font-medium text-ink transition hover:brightness-110"
               >
-                Deposit
+                {CTA.heroPrimary}
               </a>
               <a
                 href="#how"
@@ -171,78 +193,123 @@ export default function HeroOrrery() {
               </a>
             </div>
 
-            <dl className="mt-12 grid w-full max-w-2xl grid-cols-1 gap-3 sm:grid-cols-3">
-              <div className="glass rounded-xl px-4 py-3">
-                <dt className="text-[11px] uppercase tracking-[0.18em] text-gold/90">Mega Vault</dt>
-                <dd className="mt-1 text-sm text-gold">
-                  <LiveSlot
-                    state={state}
-                    value={megaValue}
-                    prelaunchText={PRELAUNCH.mega(FIRST_DRAW_DATE)}
-                    odometer
-                  />
-                </dd>
-              </div>
-              <div className="glass rounded-xl px-4 py-3">
-                <dt className="text-[11px] uppercase tracking-[0.18em] text-bone/60">
-                  Total deposited
-                </dt>
-                <dd className="mt-1 text-sm">
-                  <LiveSlot
-                    state={state}
-                    value={tvlValue}
-                    prelaunchText={PRELAUNCH.tvl(FIRST_DRAW_DATE)}
-                  />
-                </dd>
-              </div>
-              <div className="glass rounded-xl px-4 py-3">
-                <dt className="text-[11px] uppercase tracking-[0.18em] text-bone/60">Next draw</dt>
-                <dd className="mt-1 text-sm">
-                  <Countdown
-                    targetUtc={nextDraw}
-                    fallback={state === "prelaunch" ? "First draw TBA" : "—"}
-                  />
-                </dd>
-              </div>
-            </dl>
+            <p className="mt-5 font-mono text-[11px] tracking-[0.08em] text-bone/55">
+              No lockups · Principal never plays · Draws provable on-chain
+            </p>
+
+            {/* Scoreboard: exactly ONE element pre-launch (audit P0-4). */}
+            <div className="mt-10">
+              {state === "live" && stats ? (
+                <dl className="grid w-full max-w-2xl grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div className="glass rounded-xl px-4 py-3">
+                    <dt className="text-[11px] uppercase tracking-[0.18em] text-gold/90">
+                      Mega Vault
+                    </dt>
+                    <dd className="mt-1 text-sm text-gold">
+                      <Odometer value={megaValue ?? ""} />
+                    </dd>
+                  </div>
+                  <div className="glass rounded-xl px-4 py-3">
+                    <dt className="text-[11px] uppercase tracking-[0.18em] text-bone/60">
+                      Total deposited
+                    </dt>
+                    <dd className="mt-1 font-mono text-sm">
+                      {formatSol(stats.tvl_sol)} SOL
+                    </dd>
+                  </div>
+                  <div className="glass rounded-xl px-4 py-3">
+                    <dt className="text-[11px] uppercase tracking-[0.18em] text-bone/60">
+                      Next draw
+                    </dt>
+                    <dd className="mt-1 text-sm">
+                      <Countdown targetUtc={nextDraw} fallback="—" />
+                    </dd>
+                  </div>
+                </dl>
+              ) : EPOCH1_UTC ? (
+                <div className="glass inline-flex items-center gap-4 rounded-xl px-5 py-3.5">
+                  <span className="text-[11px] uppercase tracking-[0.18em] text-gold/90">
+                    Epoch 1 opens
+                  </span>
+                  <Countdown targetUtc={EPOCH1_UTC} fallback="" className="text-lg text-bone" />
+                </div>
+              ) : (
+                <div className="glass inline-flex items-center gap-3 rounded-xl px-5 py-3.5">
+                  <span className="rounded-md border border-gold/40 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.15em] text-gold">
+                    Seeding
+                  </span>
+                  <span className="text-sm text-bone/80">
+                    The Mega Vault grows until someone takes it.
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* scroll cue */}
           <div className="absolute bottom-6 left-1/2 z-10 hidden -translate-x-1/2 text-[11px] uppercase tracking-[0.3em] text-bone/40 sm:block">
             Scroll
           </div>
         </div>
       </section>
 
-      {/* Corner HUD — carries the Mega Vault number through the page */}
+      {/* PiP v2 — "Orbit ticker" (audit §7.3): one live line, dismissible,
+          hides at footer and below 768px, click scrolls to the Mega Vault. */}
       <div
-        aria-hidden={!docked}
-        className={`fixed bottom-6 right-6 z-50 w-[200px] overflow-hidden rounded-xl border border-bone/15 transition-opacity duration-300 ${
-          docked ? "opacity-100" : "pointer-events-none opacity-0"
+        aria-hidden={!pipVisible}
+        className={`fixed bottom-6 right-6 z-50 hidden w-[200px] overflow-hidden rounded-xl border border-bone/15 transition-opacity duration-300 md:block ${
+          pipVisible ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
-        <div className="relative h-[120px]">
+        <button
+          onClick={scrollToMega}
+          className="relative block h-[120px] w-full text-left"
+          aria-label="Jump to the Mega Vault section"
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/higgsfield/poster/vaultdrop-hero-orrery-loop-sm.jpg"
             alt=""
             aria-hidden
             loading="lazy"
+            width={780}
+            height={436}
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-ink/55" />
           <div className="absolute inset-0 flex flex-col justify-end p-3">
-            <div className="text-[10px] uppercase tracking-[0.2em] text-gold/90">Mega Vault</div>
-            <div className="mt-0.5 text-xs text-gold">
-              <LiveSlot
-                state={state}
-                value={megaValue}
-                prelaunchText={PRELAUNCH.mega(FIRST_DRAW_DATE)}
-                odometer
-              />
-            </div>
+            {state === "live" && megaValue ? (
+              <>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-gold/90">
+                  Mega Vault
+                </div>
+                <div className="mt-0.5 text-xs text-gold">
+                  <Odometer value={megaValue} />
+                </div>
+              </>
+            ) : nextDraw ? (
+              <>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-gold/90">
+                  {LAUNCHED ? "Next draw" : "Epoch 1"}
+                </div>
+                <Countdown targetUtc={nextDraw} fallback="" className="mt-0.5 text-xs text-bone" />
+              </>
+            ) : (
+              <>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-gold/90">
+                  Mega Vault
+                </div>
+                <div className="mt-0.5 text-xs text-bone/85">Seeding · epoch 1 soon</div>
+              </>
+            )}
           </div>
-        </div>
+        </button>
+        <button
+          onClick={() => setDismissed(true)}
+          aria-label="Dismiss ticker"
+          className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-ink/70 font-mono text-xs text-bone/70 hover:text-bone"
+        >
+          ×
+        </button>
       </div>
     </>
   );

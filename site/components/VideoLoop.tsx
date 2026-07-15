@@ -9,21 +9,25 @@ interface VideoLoopProps {
   /** hero gets priority treatment: poster is the LCP, metadata preloaded */
   priority?: boolean;
   loop?: boolean;
+  /** meaningful description; empty string = decorative (audit P2-15) */
+  alt?: string;
 }
 
 /**
- * Poster-first Higgsfield clip. Poster paints immediately; the video element
- * mounts only when near the viewport (unless priority) and only when the
- * user hasn't asked for reduced motion — in which case the poster IS the
- * experience (information parity: these clips carry no text/data).
+ * Poster-first Higgsfield clip. Poster paints immediately; the video mounts
+ * only near the viewport and never under prefers-reduced-motion (the poster is
+ * the experience — clips carry no text/data). Offscreen videos are paused via
+ * IntersectionObserver (audit §10.4).
  */
 export default function VideoLoop({
   name,
   className = "",
   priority = false,
   loop = true,
+  alt = "",
 }: VideoLoopProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [showVideo, setShowVideo] = useState(false);
 
   useEffect(() => {
@@ -47,6 +51,24 @@ export default function VideoLoop({
     return () => io.disconnect();
   }, [priority]);
 
+  // Pause when offscreen, resume when visible.
+  useEffect(() => {
+    if (!showVideo) return;
+    const el = wrapRef.current;
+    const video = videoRef.current;
+    if (!el || !video) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.some((e) => e.isIntersecting);
+        if (visible) video.play().catch(() => {});
+        else video.pause();
+      },
+      { threshold: 0 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [showVideo]);
+
   const poster = `/higgsfield/poster/${name}.jpg`;
   const posterSm = `/higgsfield/poster/${name}-sm.jpg`;
 
@@ -57,18 +79,23 @@ export default function VideoLoop({
         src={poster}
         srcSet={`${posterSm} 780w, ${poster} 1600w`}
         sizes="100vw"
-        alt=""
-        aria-hidden
+        alt={alt}
+        {...(alt === "" ? { "aria-hidden": true } : {})}
+        width={1600}
+        height={900}
         className="absolute inset-0 h-full w-full object-cover"
         {...(priority ? { fetchPriority: "high" as const } : { loading: "lazy" as const })}
       />
       {showVideo && (
         <video
+          ref={videoRef}
           className="absolute inset-0 h-full w-full object-cover"
           autoPlay
           muted
           loop={loop}
           playsInline
+          disablePictureInPicture
+          disableRemotePlayback
           preload={priority ? "metadata" : "none"}
           poster={poster}
         >

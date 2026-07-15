@@ -105,6 +105,61 @@ body {
   text-decoration-color: rgba(239, 233, 218, 0.8);
 }
 
+/* ---------- calculator slider: glass orb on a gold rail ---------- */
+.orb-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 28px;
+  background: transparent;
+  cursor: pointer;
+}
+.orb-slider::-webkit-slider-runnable-track {
+  height: 2px;
+  background: linear-gradient(90deg, rgba(201, 162, 39, 0.9), rgba(201, 162, 39, 0.35));
+  border-radius: 1px;
+}
+.orb-slider::-moz-range-track {
+  height: 2px;
+  background: linear-gradient(90deg, rgba(201, 162, 39, 0.9), rgba(201, 162, 39, 0.35));
+  border-radius: 1px;
+}
+.orb-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -12px;
+  height: 26px;
+  width: 26px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(239, 233, 218, 0.9), rgba(120, 180, 190, 0.35) 45%, rgba(11, 31, 36, 0.9) 100%);
+  border: 1.5px solid rgba(201, 162, 39, 0.8);
+  box-shadow: 0 0 12px rgba(201, 162, 39, 0.35);
+}
+.orb-slider::-moz-range-thumb {
+  height: 26px;
+  width: 26px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(239, 233, 218, 0.9), rgba(120, 180, 190, 0.35) 45%, rgba(11, 31, 36, 0.9) 100%);
+  border: 1.5px solid rgba(201, 162, 39, 0.8);
+  box-shadow: 0 0 12px rgba(201, 162, 39, 0.35);
+}
+.orb-slider:focus-visible {
+  outline: 2px solid rgba(201, 162, 39, 0.7);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* visible focus rings site-wide (audit §10.5) */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+summary:focus-visible {
+  outline: 2px solid rgba(201, 162, 39, 0.7);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 /* live-slot unavailable tooltip anchor */
 .slot-unavailable {
   cursor: help;

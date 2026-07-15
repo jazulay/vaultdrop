@@ -1,15 +1,39 @@
 import SmoothScroll from "@/components/SmoothScroll";
 import HeroOrrery from "@/components/HeroOrrery";
+import Reframe from "@/components/sections/Reframe";
 import S2How from "@/components/sections/S2How";
+import Calculator from "@/components/sections/Calculator";
 import S3Mega from "@/components/sections/S3Mega";
 import S4Proof from "@/components/sections/S4Proof";
+import Safety from "@/components/sections/Safety";
 import S5Jpsol from "@/components/sections/S5Jpsol";
 import S6Faq from "@/components/sections/S6Faq";
 import S7Cta from "@/components/sections/S7Cta";
+import { CTA } from "@/lib/launch";
+import { FAQ } from "@/lib/faq";
+
+/* Section order per audit §6:
+   Hero → Reframe → How → Calculator → Mega → Proof → Safety → FAQ → (builders) → Final CTA */
 
 export default function Home() {
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQ.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
+
   return (
     <main className="relative">
+      <a
+        href="#how"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-steel focus:px-4 focus:py-2"
+      >
+        Skip to content
+      </a>
       <SmoothScroll />
 
       <header className="absolute left-0 right-0 top-0 z-40 flex items-center justify-between px-6 py-5 sm:px-10">
@@ -27,23 +51,31 @@ export default function Home() {
             href="#waitlist"
             className="rounded-full border border-gold/50 px-5 py-2 normal-case tracking-normal text-gold transition hover:bg-gold hover:text-ink"
           >
-            Deposit
+            {CTA.navPill}
           </a>
         </nav>
       </header>
 
       <HeroOrrery />
+      <Reframe />
       <S2How />
+      <Calculator />
       <S3Mega />
       <S4Proof />
-      <S5Jpsol />
+      <Safety />
       <S6Faq />
+      <S5Jpsol />
       <S7Cta />
 
       <footer className="border-t border-bone/10 bg-ink px-6 py-10">
-        <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 font-mono text-xs text-bone/40 sm:flex-row">
-          <span>VaultDrop — prize savings on Solana</span>
-          <div className="flex gap-6">
+        <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 sm:flex-row">
+          <span className="text-xs text-bone/40">VaultDrop — prize savings on Solana</span>
+          {/* Trust strip (audit §6.10) — only live links render; X / Discord /
+              Program / Audit land here as they become real (STUBS.md). */}
+          <div className="flex flex-wrap gap-6 font-mono text-xs text-bone/40">
+            <a href="#" data-stub="docs-link" className="link-quiet">
+              Docs
+            </a>
             <a href="/proofs" className="link-quiet">
               Proofs
             </a>
@@ -53,6 +85,11 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
     </main>
   );
 }

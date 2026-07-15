@@ -14,8 +14,12 @@ cd site && npm install && npm run dev
 ```
 
 - `NEXT_PUBLIC_API_BASE` — Hermes API base URL. Unset → verbatim pre-launch states.
-- `NEXT_PUBLIC_FIRST_DRAW_DATE` — e.g. `Aug 2, 2026`. Unset → `TBA`.
+- `NEXT_PUBLIC_LAUNCHED` — `1` flips every CTA to "Deposit" and live scoreboard (audit P0-2 gate).
+- `NEXT_PUBLIC_EPOCH1_UTC` — epoch-1 open, UTC ISO (e.g. `2026-08-02T18:00:00Z`). Drives all pre-launch countdowns; unset → seeding chip, no countdown.
 - `NEXT_PUBLIC_WAITLIST_URL` — POST target for waitlist emails. Unset → honest "not connected" state.
+
+`npm run build` runs the placeholder CI guard (`scripts/check-stubs.mjs`);
+`npm test` checks the calculator against the audit's worked example.
 
 Higgsfield assets live in `site/public/higgsfield/{video,poster}` (committed).
 Raw generations in `assets/raw/` (gitignored); keyframes in `assets/keyframes/`.
