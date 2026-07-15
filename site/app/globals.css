@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #0b1f24;
+  --steel: #16303a;
+  --gold: #c9a227;
+  --bone: #efe9da;
+  --signal: #3bd08f;
+}
+
+html {
+  background: var(--ink);
+  color: var(--bone);
+}
+
+body {
+  background: var(--ink);
+  color: var(--bone);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgba(201, 162, 39, 0.35);
+  color: var(--bone);
+}
+
+/* ---------- texture: film grain + vignette ---------- */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  pointer-events: none;
+  z-index: 60;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain-shift 0.9s steps(4) infinite;
+}
+@keyframes grain-shift {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-1.5%, 1%); }
+  50% { transform: translate(1%, -1.5%); }
+  75% { transform: translate(-1%, -1%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* NOTE: .vignette does not set position — pair it with a positioned element
+   (Tailwind absolute/relative) or the ::before will escape to an ancestor. */
+.vignette::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    rgba(4, 12, 15, 0.55) 100%
+  );
+}
+
+/* ---------- glass cards ---------- */
+.glass {
+  background: rgba(22, 48, 58, 0.55);
+  border: 1px solid rgba(239, 233, 218, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ---------- odometer ---------- */
+.odo-digit {
+  display: inline-block;
+  overflow: hidden;
+  height: 1em;
+  line-height: 1;
+  vertical-align: bottom;
+}
+.odo-reel {
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+.odo-reel span {
+  height: 1em;
+  line-height: 1;
+  display: block;
+}
+
+/* ---------- ledger table ---------- */
+.ledger-row {
+  border-bottom: 1px solid rgba(239, 233, 218, 0.08);
+}
+
+.link-quiet {
+  text-decoration: underline;
+  text-decoration-color: rgba(239, 233, 218, 0.3);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.2s;
+}
+.link-quiet:hover {
+  text-decoration-color: rgba(239, 233, 218, 0.8);
+}
+
+/* live-slot unavailable tooltip anchor */
+.slot-unavailable {
+  cursor: help;
+  border-bottom: 1px dotted rgba(239, 233, 218, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain::after {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
