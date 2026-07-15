@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #0b1f24;
+  --steel: #16303a;
+  --gold: #c9a227;
+  --bone: #efe9da;
+  --signal: #3bd08f;
+  --fail: #e4574f;
+}
+
+html,
+body {
+  background: var(--ink);
+  color: var(--bone);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgba(201, 162, 39, 0.35);
+}
+
+.glass {
+  background: rgba(22, 48, 58, 0.55);
+  border: 1px solid rgba(239, 233, 218, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.ledger-row {
+  border-bottom: 1px solid rgba(239, 233, 218, 0.08);
+}
+
+.link-quiet {
+  text-decoration: underline;
+  text-decoration-color: rgba(239, 233, 218, 0.3);
+  text-underline-offset: 3px;
+}
+.link-quiet:hover {
+  text-decoration-color: rgba(239, 233, 218, 0.8);
+}
+
+/* odometer drum */
+.odo-digit {
+  display: inline-block;
+  overflow: hidden;
+  height: 1em;
+  line-height: 1;
+  vertical-align: bottom;
+}
+.odo-reel {
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+.odo-reel span {
+  height: 1em;
+  line-height: 1;
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
