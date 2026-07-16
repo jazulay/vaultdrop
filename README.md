@@ -29,6 +29,23 @@ Raw generations in `assets/raw/` (tracked); keyframes in `assets/keyframes/`.
 points are `lib/api.ts` (`/stats`, `/draws` polling), the countdown target, and the
 waitlist POST. Everything else is Fable's.
 
+## Deployment (Railway)
+
+Live at **https://site-production-3cea.up.railway.app** — project `vaultdrop`
+(id `9458f655-91ea-4fe9-b849-4b79e020af48`), service `site`, root directory `/site`.
+
+```bash
+cd site && railway up --detach --service site -m "<summary>"
+```
+
+- Deploys are CLI-only (`railway up`) — no GitHub auto-deploy is connected.
+- `railway up` archives the **repo root** regardless of cwd; the root
+  `.railwayignore` keeps the upload small (excludes `assets/`, `site/docs/`,
+  `app/`, `node_modules/`, `.next/`). Don't delete it — uploads 413 without it.
+- `NEXT_PUBLIC_SITE_ORIGIN` is set on the service (canonical/OG base). Other
+  `NEXT_PUBLIC_*` vars are intentionally unset pre-launch (honest states).
+  They're build-time: after changing one, redeploy.
+
 ## Governance files
 
 - `STUBS.md` — everything stubbed, and what replaces it
