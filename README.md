@@ -22,7 +22,7 @@ cd site && npm install && npm run dev
 `npm test` checks the calculator against the audit's worked example.
 
 Higgsfield assets live in `site/public/higgsfield/{video,poster}` (committed).
-Raw generations in `assets/raw/` (gitignored); keyframes in `assets/keyframes/`.
+Raw generations in `assets/raw/` (tracked); keyframes in `assets/keyframes/`.
 
 **Note for Hermes (prime directive): wire, don't redesign.** The three integration
 points are `lib/api.ts` (`/stats`, `/draws` polling), the countdown target, and the
