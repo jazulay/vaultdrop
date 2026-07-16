@@ -10,10 +10,10 @@
 | 6 | Calculator protocol params | `site/lib/calc.ts` `PARAMS` | PLACEHOLDER constants, labeled "illustrative" in UI | Program team (Q1: APY feed, fee %, Mega share, winners/draw) |
 | 7 | VRF provider name + program address + audit status | Proof + Safety + footer | Named generically ("on-chain VRF"); audit/upgrade-authority lines say "published before launch" | Hermes/Joseph (Q4) |
 | 8 | Social links (X, Discord) | Footer trust strip | Omitted (never invented) | Joseph (Q7) |
-| 9 | Canonical URL / metadataBase | `app/layout.tsx` | Omitted until production domain exists | Joseph |
+| 9 | Canonical URL / metadataBase | `app/layout.tsx` | rel=canonical renders from `NEXT_PUBLIC_SITE_ORIGIN` (falls back to localhost:3311 for local audits) | Joseph (set env to production domain) |
 | 10 | Mega Vault seed amount | Hero scoreboard | Seeding chip w/o number until seeded (Q2) | Hermes `/stats` |
 | 11 | `calculator-orb-mint-loop` video | — | Keyframe generated (`assets/keyframes/orbmint.png`), video not yet cut into the calculator | Design decision after launch params land |
-| 12 | "lottery" lexicon | Hero sub, OG copy, Reframe | Audit handoff v1 (2026-07-15) specifies "weekly lottery tickets" verbatim, overriding the original prompt's lexicon ban — **flagged for counsel sign-off** | Counsel |
+| 12 | "lottery" lexicon | Hero sub, OG copy, Reframe | REVERTED (audit pass 2 NF-3, 2026-07-16): "lottery" removed site-wide ("weekly tickets"); the pass-1 verbatim copy was the auditor's miss. Banned pending counsel: "lottery", "sweepstakes", "raffle" | Counsel (may re-approve) |
 
 ## Answers still needed (audit Appendix B)
-Q1 calc params · Q2 Mega seed · Q3 epoch-1 date · Q4 VRF/program/audit · Q5 withdrawal latency (FAQ hedges honestly) · Q6 waitlist endpoint + opt-in · Q7 socials/docs · Q8 confirm 100% of yield routes to prizes (FAQ "never win" answer assumes yes, consistent with the 15%-fee disclosure)
+Q1 calc params · Q2 Mega seed · Q3 epoch-1 date · Q4 VRF/program/audit · Q5 withdrawal latency (FAQ hedges honestly) · Q6 waitlist endpoint + opt-in · Q7 socials/docs · Q8 confirm 100% of yield routes to prizes (FAQ "never win" answer assumes yes, consistent with the fee disclosure, which renders from `PARAMS.protocolFee` as of audit pass 2 NF-1)

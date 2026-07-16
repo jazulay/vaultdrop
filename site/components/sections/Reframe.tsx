@@ -30,10 +30,13 @@ export default function Reframe() {
             <div className="relative aspect-[16/10]">
               <VideoLoop
                 name="vaultdrop-reframe-drip-loop"
-                className="absolute inset-0 opacity-80 saturate-50"
+                className="absolute inset-0 opacity-80 saturate-50 max-md:origin-bottom max-md:scale-[1.5]"
                 alt="A single grey droplet falling into black stillness — yield as a silent drip"
               />
               <div className="absolute inset-0 bg-ink/30" />
+              {/* Audit pass 2 NF-6: at narrow widths the clip's crop exposes
+                  domestic shapes above the droplet — sink them into ink. */}
+              <div className="absolute inset-x-0 top-0 h-[72%] bg-gradient-to-b from-ink from-30% via-ink/80 via-60% to-transparent md:hidden" />
             </div>
             <figcaption className="space-y-1.5 p-5">
               <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-bone/55">

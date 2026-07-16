@@ -29,7 +29,7 @@ export default function Home() {
   return (
     <main className="relative">
       <a
-        href="#how"
+        href="#content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-steel focus:px-4 focus:py-2"
       >
         Skip to content
@@ -56,6 +56,9 @@ export default function Home() {
         </nav>
       </header>
 
+      {/* Skip-link target: top of main content, directly past the header nav
+          (audit pass 2 NF-5 — #how skipped keyboard users past Reframe). */}
+      <div id="content" tabIndex={-1} />
       <HeroOrrery />
       <Reframe />
       <S2How />

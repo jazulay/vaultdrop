@@ -28,13 +28,17 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  // Production domain lands via NEXT_PUBLIC_SITE_ORIGIN (STUBS.md #9); the
+  // localhost fallback keeps rel=canonical auditable on local builds.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_ORIGIN ?? "http://localhost:3311"),
+  alternates: { canonical: "/" },
   title: "VaultDrop — Never lose. Sometimes win big.",
   description:
     "Prize savings on Solana. Deposit SOL, keep your principal, withdraw anytime — all yield funds weekly prize draws and a rolling Mega Vault.",
   openGraph: {
     title: "VaultDrop — Never lose. Sometimes win big.",
     description:
-      "Your staking yield becomes weekly lottery tickets. Principal never plays. Withdraw anytime.",
+      "Your staking yield becomes weekly tickets. Principal never plays. Withdraw anytime.",
     type: "website",
     images: [{ url: "/og/vaultdrop-og.jpg", width: 1200, height: 630 }],
   },
@@ -42,10 +46,9 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "VaultDrop — Never lose. Sometimes win big.",
     description:
-      "Your staking yield becomes weekly lottery tickets. Principal never plays. Withdraw anytime.",
+      "Your staking yield becomes weekly tickets. Principal never plays. Withdraw anytime.",
     images: ["/og/vaultdrop-og.jpg"],
   },
-  // canonical: set once the production domain exists (STUBS.md)
 };
 
 export const viewport = {

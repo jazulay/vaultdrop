@@ -1,4 +1,8 @@
 /** FAQ copy — single source for the accordion and the FAQPage JSON-LD. */
+import { PARAMS } from "./calc";
+
+const FEE_PCT = Math.round(PARAMS.protocolFee * 100);
+
 export const FAQ: { q: string; a: string }[] = [
   {
     q: "Is my deposit ever at risk?",
@@ -30,7 +34,7 @@ export const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "What are the fees?",
-    a: "We take 15% of yield — never your deposit. The remaining yield funds the weekly draws and the Mega Vault.",
+    a: `We take ${FEE_PCT}% of yield — never your deposit. The remaining yield funds the weekly draws and the Mega Vault.`,
   },
   {
     q: "How are winners chosen?",

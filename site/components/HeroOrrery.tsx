@@ -174,7 +174,7 @@ export default function HeroOrrery() {
               <span className="text-gold">Sometimes win big.</span>
             </h1>
             <p className="mt-6 max-w-lg text-lg text-bone/80 sm:text-xl">
-              Your staking yield becomes weekly lottery tickets. Your SOL stays
+              Your staking yield becomes weekly tickets. Your SOL stays
               yours — withdraw anytime.
             </p>
 
