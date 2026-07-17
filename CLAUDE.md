@@ -4,6 +4,9 @@ Carried over from Claude Code's session memory on Joseph's MacBook (exported 202
 This file is the working-relationship context; `README.md` is the source of truth for
 commands, env vars, and paths — if they conflict, README wins.
 
+> **New here? Read [`HANDOFF.md`](HANDOFF.md) first** — it's the current map
+> (run/deploy, architecture, gotchas, the audit paper trail) as of pass 4.
+
 ## Project
 
 VaultDrop: non-custodial prize-linked savings on Solana. "Never lose. Sometimes win big."
@@ -28,12 +31,17 @@ VaultDrop: non-custodial prize-linked savings on Solana. "Never lose. Sometimes 
 - **Evidence artifacts required per work package** — see `site/docs/` for the
   pattern (captures at 390/768/1440, reduced-motion audit, claims audit).
 
-## Status at export time (2026-07-16)
+## Status (updated 2026-07-17, after pass 4)
 
-- `site/` — built + QA'd, audit retrofit landed (P0 trust fixes, Reframe +
-  Calculator sections, PiP v2, Safety panel, FAQ expansion, OG/SEO/a11y, CI stub guard).
+- `site/` — live on Railway through **4 audit passes**. Pass 3 built the hero
+  **demo draw** (30s cycle at true odds, `lib/draw.ts` + `components/DemoDraw.tsx`);
+  pass 4 amplified it (stage bar, one demo ledger in `lib/demoLedger.ts`,
+  four-layer resolve, 6s year-sim) and fixed 6 play-test bugs. See
+  `HANDOFF.md` and `site/docs/PASS{3,4}_RESPONSE.md`.
 - `app/` — WS0 design pass done via `lib/devstate.ts` `?state=` fixture harness.
   **WS2+ blocked on Hermes IDLs / devnet API — see `BLOCKER.md`.**
+- Deploy: `cd site && railway up --detach --service site` (root `.railwayignore`
+  is required — see HANDOFF gotchas).
 
 ## Asset pipeline that worked (Higgsfield MCP)
 
