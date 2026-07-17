@@ -11,8 +11,8 @@ import Odometer from "@/components/Odometer";
 import {
   DemoDrawProvider,
   DemoDrawStage,
-  DemoDrawJoin,
   DemoDrawCta,
+  DemoDrawPipInfo,
 } from "@/components/DemoDraw";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -172,10 +172,12 @@ export default function HeroOrrery() {
             <DemoDrawStage />
           </div>
 
-          {/* hero copy */}
+          {/* hero copy — §4 layout surgery: exactly four stacked elements.
+              The id anchors the orb exclusion zone (§3.2). */}
           <div
+            id="hero-copy"
             ref={copyRef}
-            className="relative z-10 mx-auto flex h-full max-w-6xl flex-col items-start justify-end px-6 pb-16 sm:justify-center sm:pb-0"
+            className="relative z-10 mx-auto flex h-full max-w-6xl flex-col items-start justify-end px-6 pb-44 sm:justify-center sm:pb-32"
           >
             <h1 className="font-display text-[13vw] font-semibold leading-[0.95] tracking-tight sm:text-7xl lg:text-8xl xl:text-[7.5rem]">
               Never lose.
@@ -197,60 +199,48 @@ export default function HeroOrrery() {
               </a>
             </div>
 
-            {/* §4.3 — two taps to be in the next demo draw */}
-            <DemoDrawJoin />
-
             <p className="mt-5 font-mono text-[11px] tracking-[0.08em] text-bone/55">
               No lockups · Principal never plays · Draws provable on-chain
             </p>
 
-            {/* Scoreboard: exactly ONE element pre-launch (audit P0-4). */}
-            <div className="mt-10">
-              {state === "live" && stats ? (
-                <dl className="grid w-full max-w-2xl grid-cols-1 gap-3 sm:grid-cols-3">
-                  <div className="glass rounded-xl px-4 py-3">
-                    <dt className="text-[11px] uppercase tracking-[0.18em] text-gold/90">
-                      Mega Vault
-                    </dt>
-                    <dd className="mt-1 text-sm text-gold">
-                      <Odometer value={megaValue ?? ""} />
-                    </dd>
-                  </div>
-                  <div className="glass rounded-xl px-4 py-3">
-                    <dt className="text-[11px] uppercase tracking-[0.18em] text-bone/60">
-                      Total deposited
-                    </dt>
-                    <dd className="mt-1 font-mono text-sm">
-                      {formatSol(stats.tvl_sol)} SOL
-                    </dd>
-                  </div>
-                  <div className="glass rounded-xl px-4 py-3">
-                    <dt className="text-[11px] uppercase tracking-[0.18em] text-bone/60">
-                      Next draw
-                    </dt>
-                    <dd className="mt-1 text-sm">
-                      <Countdown targetUtc={nextDraw} fallback="—" />
-                    </dd>
-                  </div>
-                </dl>
-              ) : EPOCH1_UTC ? (
-                <div className="glass inline-flex items-center gap-4 rounded-xl px-5 py-3.5">
-                  <span className="text-[11px] uppercase tracking-[0.18em] text-gold/90">
-                    Epoch 1 opens
-                  </span>
-                  <Countdown targetUtc={EPOCH1_UTC} fallback="" className="text-lg text-bone" />
+            {/* Launched/live states only — pre-launch, the stage bar carries
+                the game (§4: the SEEDING card's info merged into its mega
+                plate; the demo clock is the countdown until epoch-1 exists). */}
+            {state === "live" && stats ? (
+              <dl className="mt-10 grid w-full max-w-2xl grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="glass rounded-xl px-4 py-3">
+                  <dt className="text-[11px] uppercase tracking-[0.18em] text-gold/90">
+                    Mega Vault
+                  </dt>
+                  <dd className="mt-1 text-sm text-gold">
+                    <Odometer value={megaValue ?? ""} />
+                  </dd>
                 </div>
-              ) : (
-                <div className="glass inline-flex items-center gap-3 rounded-xl px-5 py-3.5">
-                  <span className="rounded-md border border-gold/40 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.15em] text-gold">
-                    Seeding
-                  </span>
-                  <span className="text-sm text-bone/80">
-                    The Mega Vault grows until someone takes it.
-                  </span>
+                <div className="glass rounded-xl px-4 py-3">
+                  <dt className="text-[11px] uppercase tracking-[0.18em] text-bone/60">
+                    Total deposited
+                  </dt>
+                  <dd className="mt-1 font-mono text-sm">
+                    {formatSol(stats.tvl_sol)} SOL
+                  </dd>
                 </div>
-              )}
-            </div>
+                <div className="glass rounded-xl px-4 py-3">
+                  <dt className="text-[11px] uppercase tracking-[0.18em] text-bone/60">
+                    Next draw
+                  </dt>
+                  <dd className="mt-1 text-sm">
+                    <Countdown targetUtc={nextDraw} fallback="—" />
+                  </dd>
+                </div>
+              </dl>
+            ) : EPOCH1_UTC ? (
+              <div className="glass mt-10 inline-flex items-center gap-4 rounded-xl px-5 py-3.5">
+                <span className="text-[11px] uppercase tracking-[0.18em] text-gold/90">
+                  Epoch 1 opens
+                </span>
+                <Countdown targetUtc={EPOCH1_UTC} fallback="" className="text-lg text-bone" />
+              </div>
+            ) : null}
           </div>
 
           <div className="absolute bottom-6 left-1/2 z-10 hidden -translate-x-1/2 text-[11px] uppercase tracking-[0.3em] text-bone/40 sm:block">
@@ -301,12 +291,8 @@ export default function HeroOrrery() {
                 <Countdown targetUtc={nextDraw} fallback="" className="mt-0.5 text-xs text-bone" />
               </>
             ) : (
-              <>
-                <div className="text-[10px] uppercase tracking-[0.2em] text-gold/90">
-                  Mega Vault
-                </div>
-                <div className="mt-0.5 text-xs text-bone/85">Seeding · epoch 1 soon</div>
-              </>
+              /* B5: the PiP carries the live demo game, not static text */
+              <DemoDrawPipInfo />
             )}
           </div>
         </button>

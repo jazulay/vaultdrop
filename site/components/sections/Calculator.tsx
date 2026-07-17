@@ -26,32 +26,48 @@ function depositToSlider(d: number): number {
   return Math.log(d / MIN) / Math.log(MAX / MIN);
 }
 
-const CELL_STAGGER_MS = 110; // 52 cells ≈ 6s fill (§5.1)
+const CELL_MS = 115; // §3.7: 52 cells × 115ms = 6.0s — the tempo IS the anticipation
 
 export default function Calculator() {
   const [t, setT] = useState(depositToSlider(25));
   const [tvl, setTvl] = useState<number>(PARAMS.tvlScenarios[1]);
   const [year, setYear] = useState<YearResult | null>(null);
-  const [yearDone, setYearDone] = useState(false);
+  const [revealed, setRevealed] = useState(0);
+  const [stepMode, setStepMode] = useState(false);
   const yearRunsRef = useRef(0);
-  const yearTimerRef = useRef(0);
+  const intervalRef = useRef(0);
 
   const deposit = Math.round(sliderToDeposit(t) * 10) / 10;
   const r = calc(deposit, tvl);
   const oneInN = Math.round(r.oneInN);
+  const yearDone = year !== null && revealed >= 52;
 
   const runYear = () => {
-    window.clearTimeout(yearTimerRef.current);
+    window.clearInterval(intervalRef.current);
     const result = simulateYear(deposit, tvl);
     yearRunsRef.current += 1;
     track("year_sim_run", { count: yearRunsRef.current, deposit, tvl });
     setYear(result);
-    setYearDone(false);
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    yearTimerRef.current = window.setTimeout(
-      () => setYearDone(true),
-      reduced ? 0 : 52 * CELL_STAGGER_MS + 400,
-    );
+    if (reduced) {
+      // §5 reduced-motion parity: end state instantly + a step-through control.
+      setStepMode(true);
+      setRevealed(52);
+      return;
+    }
+    setStepMode(false);
+    setRevealed(0);
+    intervalRef.current = window.setInterval(() => {
+      setRevealed((n) => {
+        if (n + 1 >= 52) window.clearInterval(intervalRef.current);
+        return n + 1;
+      });
+    }, CELL_MS);
+  };
+
+  const stepThrough = () => {
+    if (!year) return;
+    setRevealed((n) => (n >= 52 ? 1 : n + 1));
   };
 
   return (
@@ -178,43 +194,51 @@ export default function Calculator() {
           </button>
 
           {year && (
-            <div className="mt-6" aria-live="polite">
-              <div className="flex flex-wrap items-end gap-[3px]" aria-hidden>
-                {year.cells.map((c, i) => (
-                  <div key={`${i}-${year.wins}-${year.totalSol}`} className="relative">
-                    {c.win && (
-                      <span
-                        className="year-cell absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[9px] text-gold"
-                        style={{ animationDelay: `${i * CELL_STAGGER_MS}ms` }}
-                      >
-                        WIN +{c.prize.toFixed(1)}
-                      </span>
-                    )}
+            <div className="mt-8" aria-live="polite">
+              {/* §3.7: 52 Sundays at ≥24×32px — WINs unmistakable at a glance */}
+              <div className="flex flex-wrap items-end gap-1" aria-hidden>
+                {year.cells.map((c, i) => {
+                  const shown = i < revealed;
+                  const winCell = c.win || c.personalMega;
+                  return (
                     <div
-                      className={`year-cell h-6 w-2 rounded-sm sm:w-2.5 ${
-                        c.personalMega
-                          ? "year-cell-win bg-signal"
-                          : c.megaHit
-                            ? "year-cell-win bg-gold ring-1 ring-gold/70"
-                            : c.win
-                              ? "year-cell-win bg-gold"
-                              : "bg-bone/15"
+                      key={`${yearRunsRef.current}-${i}`}
+                      className={`relative flex h-8 w-6 items-center justify-center rounded-md font-mono text-[9px] transition-opacity ${
+                        !shown
+                          ? "opacity-0"
+                          : c.personalMega
+                            ? "year-pop bg-signal text-ink"
+                            : winCell
+                              ? "year-pop year-burst bg-gold text-ink"
+                              : c.megaHit
+                                ? "year-pop border border-[#d07a27]/70 bg-[#d07a27]/25 text-bone/70"
+                                : "year-pop bg-steel/70 text-bone/30"
                       }`}
-                      style={{ animationDelay: `${i * CELL_STAGGER_MS}ms` }}
                       title={`week ${c.week}${c.win ? ` — win +${c.prize.toFixed(1)} SOL` : ""}${c.megaHit ? " — vault Mega landed" : ""}${c.personalMega ? " — YOUR Mega win" : ""}`}
-                    />
-                  </div>
-                ))}
+                    >
+                      {shown && (winCell ? `+${c.prize.toFixed(1)}` : c.megaHit ? "M" : "·")}
+                    </div>
+                  );
+                })}
               </div>
+              {stepMode && (
+                <button
+                  onClick={stepThrough}
+                  className="mt-3 rounded-full border border-bone/30 px-4 py-1.5 font-mono text-xs text-bone/80 transition hover:border-gold/60"
+                >
+                  Step through week by week ({Math.min(revealed, 52)}/52)
+                </button>
+              )}
               <p
                 className={`mt-4 font-mono text-sm transition-opacity duration-500 ${
                   yearDone ? "opacity-100" : "opacity-0"
                 }`}
               >
                 <span className="text-bone">
-                  Your year: {year.wins} win{year.wins === 1 ? "" : "s"} ·{" "}
-                  {year.totalSol.toLocaleString("en-US", { maximumFractionDigits: 1 })} SOL ·
-                  principal untouched: {fmtSol(deposit, 1)} SOL
+                  Your year: <CountUp value={yearDone ? year.wins : 0} /> win
+                  {year.wins === 1 ? "" : "s"} ·{" "}
+                  <CountUp value={yearDone ? year.totalSol : 0} decimals={1} /> SOL · principal
+                  untouched: {fmtSol(deposit, 1)} SOL
                 </span>{" "}
                 <span className="text-bone/50">(demo, real odds)</span>
                 {year.megaHits > 0 && (

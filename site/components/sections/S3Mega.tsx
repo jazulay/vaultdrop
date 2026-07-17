@@ -6,7 +6,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useStats } from "@/lib/api";
 import { LAUNCHED, EPOCH1_UTC } from "@/lib/launch";
 import { nextSunday18UTC } from "@/lib/format";
-import { DEMO_VAULT_SOL, megaWeeklyAccrual, rejectionInt } from "@/lib/draw";
+import { rejectionInt } from "@/lib/draw";
+import { initLedger, useDemoLedger } from "@/lib/demoLedger";
 import Odometer from "@/components/Odometer";
 import Countdown from "@/components/Countdown";
 import VideoLoop from "@/components/VideoLoop";
@@ -50,11 +51,17 @@ function Embers() {
   );
 }
 
-/** §5.2 — the rollover strip: misses stacking, watched instead of stated. */
+/**
+ * §3.8 + B3 — the rollover strip renders the ACTUAL demo-mega history from
+ * lib/demoLedger: last 8 of N misses, running total equal to the hero ticker
+ * by construction. One ledger, one story.
+ */
 function RolloverStrip() {
   const ref = useRef<HTMLDivElement>(null);
   const [seen, setSeen] = useState(false);
+  const led = useDemoLedger();
   useEffect(() => {
+    initLedger();
     const el = ref.current;
     if (!el) return;
     const io = new IntersectionObserver(
@@ -70,32 +77,44 @@ function RolloverStrip() {
     return () => io.disconnect();
   }, []);
 
-  const weekly = megaWeeklyAccrual(DEMO_VAULT_SOL);
-  const label = `+${weekly.toLocaleString("en-US", { maximumFractionDigits: 1 })}`;
-  const WEEKS = 8;
+  const label = `+${led.accrual.toLocaleString("en-US", { maximumFractionDigits: 1 })}`;
+  const shown = Math.min(8, led.missWeeks);
+  const earlier = led.missWeeks - shown;
+  const cells = Array.from({ length: shown }, (_, i) => led.missWeeks - shown + i + 1);
 
   return (
-    <div ref={ref} className="mt-10 max-w-xl">
+    <div ref={ref} className="mt-10 max-w-2xl">
       <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
-        {Array.from({ length: WEEKS }, (_, i) => (
+        {earlier > 0 && (
           <span
-            key={i}
-            className={`rounded-md border border-gold/30 px-2 py-1 text-gold/85 ${seen ? "year-cell" : "opacity-0"}`}
-            style={seen ? { animationDelay: `${i * 180}ms` } : undefined}
+            className={`rounded-md border border-bone/20 px-2 py-1 text-bone/50 ${seen ? "strip-cell" : "opacity-0"}`}
           >
-            W{i + 1} {label}
+            … {earlier} earlier miss{earlier === 1 ? "" : "es"}
+          </span>
+        )}
+        {cells.map((week, i) => (
+          <span
+            key={week}
+            className={`rounded-md border px-2 py-1 ${seen ? "strip-cell" : "opacity-0"}`}
+            style={{
+              ...(seen ? { animationDelay: `${(i + 1) * 120}ms` } : {}),
+              borderColor: `rgba(201,162,39,${0.25 + (i / Math.max(1, shown - 1)) * 0.5})`,
+              color: `rgba(201,162,39,${0.55 + (i / Math.max(1, shown - 1)) * 0.45})`,
+            }}
+          >
+            W{week} {label}
           </span>
         ))}
         <span
-          className={`px-1 text-bone/60 ${seen ? "year-cell" : "opacity-0"}`}
-          style={seen ? { animationDelay: `${WEEKS * 180}ms` } : undefined}
+          className={`px-1 font-medium text-gold ${seen ? "strip-cell" : "opacity-0"}`}
+          style={seen ? { animationDelay: `${(shown + 1) * 120}ms` } : undefined}
         >
-          → next: Sunday
+          = {led.pot.toLocaleString("en-US", { maximumFractionDigits: 0 })} SOL and rolling
         </span>
       </div>
       <p className="mt-2 font-mono text-[10px] text-bone/45">
-        weekly accrual at a {DEMO_VAULT_SOL.toLocaleString("en-US")} SOL demo vault — from the
-        same parameters as the calculator
+        the live demo vault&apos;s actual miss history — same ledger as the hero, same
+        parameters as the calculator
       </p>
     </div>
   );
@@ -108,6 +127,7 @@ function RolloverStrip() {
 export default function S3Mega() {
   const ref = useRef<HTMLElement>(null);
   const { state, stats } = useStats();
+  const led = useDemoLedger();
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -163,6 +183,8 @@ export default function S3Mega() {
           </span>
         </div>
 
+        {/* §3.9 + B4: the pot takes its throne. Live pot when real; the demo
+            ledger's pot (labeled) until then — launch-day ready by design. */}
         <div className="mega-heartbeat mt-6 font-display font-semibold tracking-tight text-gold">
           {megaValue ? (
             <span className="text-6xl sm:text-8xl lg:text-9xl">
@@ -170,11 +192,23 @@ export default function S3Mega() {
               <span className="ml-4 text-3xl text-gold/70 sm:text-5xl">SOL</span>
             </span>
           ) : (
-            <span className="block max-w-3xl text-4xl leading-tight sm:text-6xl lg:text-7xl">
-              It grows until someone takes it.
+            <span className="text-6xl sm:text-8xl lg:text-9xl">
+              <Odometer
+                value={led.pot.toLocaleString("en-US", { maximumFractionDigits: 0 })}
+                className="tabular-nums"
+              />
+              <span className="ml-4 text-3xl text-gold/70 sm:text-5xl">SOL</span>
+              <span className="ml-4 inline-block translate-y-[-0.5em] rounded-md border border-gold/40 px-2 py-0.5 align-middle font-mono text-[11px] uppercase tracking-[0.15em] text-gold/90">
+                demo
+              </span>
             </span>
           )}
         </div>
+        {!megaValue && (
+          <p className="mt-4 max-w-3xl font-display text-2xl font-semibold leading-tight text-gold/80 sm:text-3xl">
+            It grows until someone takes it.
+          </p>
+        )}
 
         <p className="mt-8 max-w-xl text-xl leading-snug text-bone/90 sm:text-2xl">
           Every week it doesn&apos;t hit, it grows.
