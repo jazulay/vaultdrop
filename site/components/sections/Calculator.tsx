@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { calc, PARAMS } from "@/lib/calc";
+import { simulateYear, type YearResult } from "@/lib/draw";
+import { track } from "@/lib/analytics";
+import CountUp from "@/components/CountUp";
 
 /**
  * TICKET CALCULATOR (audit §7.2) — the flagship new component.
@@ -23,13 +26,33 @@ function depositToSlider(d: number): number {
   return Math.log(d / MIN) / Math.log(MAX / MIN);
 }
 
+const CELL_STAGGER_MS = 110; // 52 cells ≈ 6s fill (§5.1)
+
 export default function Calculator() {
   const [t, setT] = useState(depositToSlider(25));
   const [tvl, setTvl] = useState<number>(PARAMS.tvlScenarios[1]);
+  const [year, setYear] = useState<YearResult | null>(null);
+  const [yearDone, setYearDone] = useState(false);
+  const yearRunsRef = useRef(0);
+  const yearTimerRef = useRef(0);
 
   const deposit = Math.round(sliderToDeposit(t) * 10) / 10;
   const r = calc(deposit, tvl);
   const oneInN = Math.round(r.oneInN);
+
+  const runYear = () => {
+    window.clearTimeout(yearTimerRef.current);
+    const result = simulateYear(deposit, tvl);
+    yearRunsRef.current += 1;
+    track("year_sim_run", { count: yearRunsRef.current, deposit, tvl });
+    setYear(result);
+    setYearDone(false);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    yearTimerRef.current = window.setTimeout(
+      () => setYearDone(true),
+      reduced ? 0 : 52 * CELL_STAGGER_MS + 400,
+    );
+  };
 
   return (
     <section id="calculator" className="relative border-y border-bone/10 bg-steel/30 py-24 sm:py-32">
@@ -102,7 +125,8 @@ export default function Calculator() {
               Your yield routed to prizes
             </dt>
             <dd className="mt-1 font-mono text-2xl text-gold">
-              {fmtSol(r.routedYearly)} <span className="text-sm text-gold/60">SOL / yr</span>
+              <CountUp value={r.routedYearly} decimals={2} />{" "}
+              <span className="text-sm text-gold/60">SOL / yr</span>
             </dd>
           </div>
           <div className="glass rounded-xl p-5">
@@ -110,10 +134,11 @@ export default function Calculator() {
               Your shot this Sunday
             </dt>
             <dd className="mt-1 font-mono text-2xl text-gold">
-              ≈ 1 in {oneInN.toLocaleString("en-US")}
+              ≈ 1 in <CountUp value={oneInN} />
             </dd>
             <dd className="mt-1 font-mono text-[11px] text-bone/60">
-              ≈ {(r.pYear * 100).toFixed(1)}% chance of at least one win this year
+              ≈ <CountUp value={r.pYear * 100} decimals={1} />% chance of at least one win
+              this year
             </dd>
           </div>
           <div className="glass rounded-xl p-5">
@@ -121,10 +146,12 @@ export default function Calculator() {
               Average weekly prize
             </dt>
             <dd className="mt-1 font-mono text-2xl text-bone">
-              ≈ {fmtSol(r.avgPrize)} <span className="text-sm text-bone/50">SOL</span>
+              ≈ <CountUp value={r.avgPrize} decimals={2} />{" "}
+              <span className="text-sm text-bone/50">SOL</span>
             </dd>
             <dd className="mt-1 font-mono text-[11px] text-bone/60">
-              from a ≈ {fmtSol(r.weeklyPool, 0)} SOL pool · {PARAMS.winnersPerDraw} winners
+              from a ≈ <CountUp value={r.weeklyPool} /> SOL pool · {PARAMS.winnersPerDraw}{" "}
+              winners
             </dd>
           </div>
           <div className="glass rounded-xl p-5">
@@ -132,13 +159,78 @@ export default function Calculator() {
               Mega Vault, when it lands
             </dt>
             <dd className="mt-1 font-mono text-2xl text-gold">
-              ≈ {fmtSol(r.megaAvgAtHit, 0)} <span className="text-sm text-gold/60">SOL</span>
+              ≈ <CountUp value={r.megaAvgAtHit} />{" "}
+              <span className="text-sm text-gold/60">SOL</span>
             </dd>
             <dd className="mt-1 font-mono text-[11px] text-bone/60">
               averages ~2 hits a year at 1-in-26 weekly
             </dd>
           </div>
         </dl>
+
+        {/* §5.1 — Simulate my year: the repeatable variable-reward loop */}
+        <div className="mt-10">
+          <button
+            onClick={runYear}
+            className="press-ripple rounded-full border border-gold/50 px-6 py-2.5 font-medium text-gold transition hover:bg-gold hover:text-ink"
+          >
+            {year ? "Run it again" : "Simulate my year"}
+          </button>
+
+          {year && (
+            <div className="mt-6" aria-live="polite">
+              <div className="flex flex-wrap items-end gap-[3px]" aria-hidden>
+                {year.cells.map((c, i) => (
+                  <div key={`${i}-${year.wins}-${year.totalSol}`} className="relative">
+                    {c.win && (
+                      <span
+                        className="year-cell absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[9px] text-gold"
+                        style={{ animationDelay: `${i * CELL_STAGGER_MS}ms` }}
+                      >
+                        WIN +{c.prize.toFixed(1)}
+                      </span>
+                    )}
+                    <div
+                      className={`year-cell h-6 w-2 rounded-sm sm:w-2.5 ${
+                        c.personalMega
+                          ? "year-cell-win bg-signal"
+                          : c.megaHit
+                            ? "year-cell-win bg-gold ring-1 ring-gold/70"
+                            : c.win
+                              ? "year-cell-win bg-gold"
+                              : "bg-bone/15"
+                      }`}
+                      style={{ animationDelay: `${i * CELL_STAGGER_MS}ms` }}
+                      title={`week ${c.week}${c.win ? ` — win +${c.prize.toFixed(1)} SOL` : ""}${c.megaHit ? " — vault Mega landed" : ""}${c.personalMega ? " — YOUR Mega win" : ""}`}
+                    />
+                  </div>
+                ))}
+              </div>
+              <p
+                className={`mt-4 font-mono text-sm transition-opacity duration-500 ${
+                  yearDone ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                <span className="text-bone">
+                  Your year: {year.wins} win{year.wins === 1 ? "" : "s"} ·{" "}
+                  {year.totalSol.toLocaleString("en-US", { maximumFractionDigits: 1 })} SOL ·
+                  principal untouched: {fmtSol(deposit, 1)} SOL
+                </span>{" "}
+                <span className="text-bone/50">(demo, real odds)</span>
+                {year.megaHits > 0 && (
+                  <span className="block text-bone/60">
+                    The vault&apos;s Mega landed {year.megaHits}× that year
+                    {year.personalMegaWin ? (
+                      <span className="text-signal"> — and one of them was YOURS.</span>
+                    ) : (
+                      " — someone else's week."
+                    )}
+                  </span>
+                )}
+              </p>
+            </div>
+          )}
+        </div>
 
         <div className="mt-6 flex flex-col gap-2">
           <div className="font-mono text-sm text-signal">

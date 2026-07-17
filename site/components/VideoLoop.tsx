@@ -11,6 +11,12 @@ interface VideoLoopProps {
   loop?: boolean;
   /** meaningful description; empty string = decorative (audit P2-15) */
   alt?: string;
+  /**
+   * "inview" (default): autoplay while visible. "hover" (§5.3): poster by
+   * default, play on hover/focus on fine pointers; falls back to in-view
+   * playback on touch devices. Zero initial cost either way (preload none).
+   */
+  playMode?: "inview" | "hover";
 }
 
 /**
@@ -25,13 +31,21 @@ export default function VideoLoop({
   priority = false,
   loop = true,
   alt = "",
+  playMode = "inview",
 }: VideoLoopProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showVideo, setShowVideo] = useState(false);
+  const [hoverMode, setHoverMode] = useState(false);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // Hover mode only makes sense with a hover-capable pointer.
+    const canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    if (playMode === "hover" && canHover) {
+      setHoverMode(true);
+      return; // video mounts lazily on first hover/focus
+    }
     if (priority) {
       setShowVideo(true);
       return;
@@ -49,11 +63,11 @@ export default function VideoLoop({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [priority]);
+  }, [priority, playMode]);
 
-  // Pause when offscreen, resume when visible.
+  // In-view playback: pause when offscreen, resume when visible.
   useEffect(() => {
-    if (!showVideo) return;
+    if (!showVideo || hoverMode) return;
     const el = wrapRef.current;
     const video = videoRef.current;
     if (!el || !video) return;
@@ -67,7 +81,30 @@ export default function VideoLoop({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [showVideo]);
+  }, [showVideo, hoverMode]);
+
+  // Hover playback (§5.3): mount on first hover/focus, play while held.
+  useEffect(() => {
+    if (!hoverMode) return;
+    const el = wrapRef.current;
+    if (!el) return;
+    const start = () => {
+      setShowVideo(true);
+      // play() next tick once the element exists
+      requestAnimationFrame(() => videoRef.current?.play().catch(() => {}));
+    };
+    const stop = () => videoRef.current?.pause();
+    el.addEventListener("pointerenter", start);
+    el.addEventListener("pointerleave", stop);
+    el.addEventListener("focusin", start);
+    el.addEventListener("focusout", stop);
+    return () => {
+      el.removeEventListener("pointerenter", start);
+      el.removeEventListener("pointerleave", stop);
+      el.removeEventListener("focusin", start);
+      el.removeEventListener("focusout", stop);
+    };
+  }, [hoverMode]);
 
   const poster = `/higgsfield/poster/${name}.jpg`;
   const posterSm = `/higgsfield/poster/${name}-sm.jpg`;

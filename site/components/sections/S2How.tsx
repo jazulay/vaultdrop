@@ -64,8 +64,10 @@ export default function S2How() {
         <div className="mt-14 grid gap-10 md:grid-cols-3">
           {PANELS.map((p) => (
             <figure key={p.step} className="how-panel">
+              {/* §5.3 — poster by default; hover/focus plays on desktop,
+                  in-view playback on touch. Zero initial weight. */}
               <div className="vignette relative aspect-video overflow-hidden rounded-2xl border border-bone/10">
-                <VideoLoop name={p.clip} className="absolute inset-0" />
+                <VideoLoop name={p.clip} className="absolute inset-0" playMode="hover" />
               </div>
               <figcaption className="mt-5 flex gap-4">
                 <span className="font-mono text-sm text-bone/40">{p.step}</span>

@@ -13,7 +13,10 @@
 | 9 | Canonical URL / metadataBase | `app/layout.tsx` | rel=canonical renders from `NEXT_PUBLIC_SITE_ORIGIN` (falls back to localhost:3311 for local audits) | Joseph (set env to production domain) |
 | 10 | Mega Vault seed amount | Hero scoreboard | Seeding chip w/o number until seeded (Q2) | Hermes `/stats` |
 | 11 | `calculator-orb-mint-loop` video | — | Keyframe generated (`assets/keyframes/orbmint.png`), video not yet cut into the calculator | Design decision after launch params land |
-| 12 | "lottery" lexicon | Hero sub, OG copy, Reframe | REVERTED (audit pass 2 NF-3, 2026-07-16): "lottery" removed site-wide ("weekly tickets"); the pass-1 verbatim copy was the auditor's miss. Banned pending counsel: "lottery", "sweepstakes", "raffle" | Counsel (may re-approve) |
+| 12 | "lottery" lexicon | Hero sub, OG copy, Reframe | REVERTED (audit pass 2 NF-3, 2026-07-16): "lottery" removed site-wide ("weekly tickets"); the pass-1 verbatim copy was the auditor's miss. Banned pending counsel: "lottery", "sweepstakes", "raffle" (now CI-enforced in sources too) | Counsel (may re-approve) |
+| 13 | Analytics provider | `site/lib/analytics.ts` | Pass-3 §11 events push to `window.dataLayer` only — no provider wired, nothing leaves the page | Joseph (pick provider; attach tag manager) |
+| 14 | `mega-ignition-fullbleed` asset | Demo-draw hero (§4.2) | Mega ignition uses the existing `ignite-moment` clip scaled full-screen + CSS bloom | Higgsfield generation (pass-3 §10.1) |
+| 15 | Sound layer (§5.7) | — | Not built (optional, OFF-by-default spec; no audio assets exist) | Design decision + audio kit (pass-3 §10.4) |
 
 ## Answers still needed (audit Appendix B)
 Q1 calc params · Q2 Mega seed · Q3 epoch-1 date · Q4 VRF/program/audit · Q5 withdrawal latency (FAQ hedges honestly) · Q6 waitlist endpoint + opt-in · Q7 socials/docs · Q8 confirm 100% of yield routes to prizes (FAQ "never win" answer assumes yes, consistent with the fee disclosure, which renders from `PARAMS.protocolFee` as of audit pass 2 NF-1)

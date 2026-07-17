@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CTA } from "@/lib/launch";
+import { track } from "@/lib/analytics";
+import Magnetic from "@/components/Magnetic";
 
 /**
  * S7 — FINAL CTA. Ignite moment (A6, non-loop) plays once on entry.
@@ -138,13 +140,16 @@ export default function S7Cta() {
                 aria-hidden
                 className="hidden"
               />
-              <button
-                type="submit"
-                disabled={phase === "submitting"}
-                className="shrink-0 rounded-full bg-gold px-8 py-3.5 font-medium text-ink transition hover:brightness-110 disabled:opacity-50"
-              >
-                {phase === "submitting" ? "Joining…" : CTA.footerButton}
-              </button>
+              <Magnetic>
+                <button
+                  type="submit"
+                  disabled={phase === "submitting"}
+                  onClick={() => track("cta_click", { cta: "footer" })}
+                  className="press-ripple shrink-0 rounded-full bg-gold px-8 py-3.5 font-medium text-ink transition hover:brightness-110 disabled:opacity-50"
+                >
+                  {phase === "submitting" ? "Joining…" : CTA.footerButton}
+                </button>
+              </Magnetic>
             </form>
             <p className="mt-3 h-5 text-sm text-bone/55" aria-live="polite">
               {phase === "invalid" && "That email doesn't look right."}

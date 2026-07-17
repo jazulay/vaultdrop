@@ -4,10 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useStats } from "@/lib/api";
-import { LAUNCHED, EPOCH1_UTC, CTA } from "@/lib/launch";
+import { LAUNCHED, EPOCH1_UTC } from "@/lib/launch";
 import { formatSol, nextSunday18UTC } from "@/lib/format";
 import Countdown from "@/components/Countdown";
 import Odometer from "@/components/Odometer";
+import {
+  DemoDrawProvider,
+  DemoDrawStage,
+  DemoDrawJoin,
+  DemoDrawCta,
+} from "@/components/DemoDraw";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -125,7 +131,7 @@ export default function HeroOrrery() {
   const pipVisible = docked && !dismissed && !footerVisible;
 
   return (
-    <>
+    <DemoDrawProvider docked={docked}>
       <section ref={sectionRef} className={reduced ? "relative h-screen" : "relative h-[160vh]"}>
         <div className="sticky top-0 h-screen">
           {/* the video frame that shrinks to the corner */}
@@ -161,6 +167,9 @@ export default function HeroOrrery() {
               </video>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-transparent to-ink/40" />
+            {/* Pass 3 §4: the demo-draw layer, composited over the loop. It
+                shrinks with the frame and pauses once docked. */}
+            <DemoDrawStage />
           </div>
 
           {/* hero copy */}
@@ -179,12 +188,7 @@ export default function HeroOrrery() {
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-4">
-              <a
-                href="#waitlist"
-                className="rounded-full bg-gold px-8 py-3.5 font-medium text-ink transition hover:brightness-110"
-              >
-                {CTA.heroPrimary}
-              </a>
+              <DemoDrawCta />
               <a
                 href="#how"
                 className="rounded-full border border-bone/25 px-8 py-3.5 font-medium text-bone transition hover:border-bone/60"
@@ -192,6 +196,9 @@ export default function HeroOrrery() {
                 How it works
               </a>
             </div>
+
+            {/* §4.3 — two taps to be in the next demo draw */}
+            <DemoDrawJoin />
 
             <p className="mt-5 font-mono text-[11px] tracking-[0.08em] text-bone/55">
               No lockups · Principal never plays · Draws provable on-chain
@@ -311,6 +318,6 @@ export default function HeroOrrery() {
           ×
         </button>
       </div>
-    </>
+    </DemoDrawProvider>
   );
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDraws, PRELAUNCH, UNAVAILABLE_TOOLTIP } from "@/lib/api";
 import { formatSol } from "@/lib/format";
+import Odometer from "@/components/Odometer";
 
 /**
  * S4 — PROOF. Ledger fed by /draws. Pre-launch: verbatim empty state PLUS one
@@ -12,6 +13,27 @@ import { formatSol } from "@/lib/format";
 export default function S4Proof() {
   const { state, draws } = useDraws();
   const [open, setOpen] = useState(false);
+  const tableRef = useRef<HTMLDivElement>(null);
+  const [settled, setSettled] = useState(false);
+
+  // §5.5 — the preview row "settles" once on first view: numbers slot in
+  // odometer-style, links stamp in. The table teaches "draws produce records"
+  // by producing one in front of you. Still, subtle, never repeats.
+  useEffect(() => {
+    const el = tableRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setSettled(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.3 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const hasLive = state === "live" && draws && draws.length > 0;
 
@@ -33,7 +55,7 @@ export default function S4Proof() {
           .
         </p>
 
-        <div className="glass mt-10 overflow-x-auto rounded-2xl">
+        <div ref={tableRef} className="glass mt-10 overflow-x-auto rounded-2xl">
           <table className="w-full min-w-[640px] text-left font-mono text-sm">
             <caption className="sr-only">
               Draw history: epoch, prize pool, winners, VRF proof and settlement
@@ -77,10 +99,24 @@ export default function S4Proof() {
                       </span>
                       12
                     </td>
-                    <td className="px-5 py-4 text-right">118.4 SOL</td>
-                    <td className="px-5 py-4 text-right">20</td>
-                    <td className="px-5 py-4">proof ↗</td>
-                    <td className="px-5 py-4">tx ↗</td>
+                    <td className="px-5 py-4 text-right">
+                      {settled ? <Odometer value="118.4" /> : <span className="opacity-0">118.4</span>}{" "}
+                      SOL
+                    </td>
+                    <td className="px-5 py-4 text-right">
+                      {settled ? <Odometer value="20" /> : <span className="opacity-0">20</span>}
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className={settled ? "stamp-in inline-block" : "opacity-0"}>proof ↗</span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span
+                        className={settled ? "stamp-in inline-block" : "opacity-0"}
+                        style={{ animationDelay: "150ms" }}
+                      >
+                        tx ↗
+                      </span>
+                    </td>
                   </tr>
                   <tr>
                     <td colSpan={5} className="px-5 py-8 text-center text-bone/60">

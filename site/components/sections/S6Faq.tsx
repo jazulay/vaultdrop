@@ -25,7 +25,7 @@ export default function S6Faq() {
                   <span>{item.q}</span>
                   <span
                     aria-hidden
-                    className="ml-4 inline-block font-mono text-xl text-bone/40 transition-transform duration-200"
+                    className="faq-chevron ml-4 inline-block font-mono text-xl text-bone/40"
                     style={{ transform: openIdx === i ? "rotate(45deg)" : "none" }}
                   >
                     +
