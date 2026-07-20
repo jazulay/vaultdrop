@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useStats } from "@/lib/api";
-import { LAUNCHED, EPOCH1_UTC } from "@/lib/launch";
+import { PARAMS } from "@/lib/calc";
+import { track } from "@/lib/analytics";
+import { APP_URL, LAUNCHED, EPOCH1_UTC } from "@/lib/launch";
 import { formatSol, nextSunday18UTC } from "@/lib/format";
 import Countdown from "@/components/Countdown";
 import Odometer from "@/components/Odometer";
@@ -28,6 +30,7 @@ export default function HeroOrrery() {
   const frameRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const copyRef = useRef<HTMLDivElement>(null);
+  const chapterRef = useRef<HTMLDivElement>(null);
   const [docked, setDocked] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [footerVisible, setFooterVisible] = useState(false);
@@ -84,7 +87,11 @@ export default function HeroOrrery() {
         },
       });
 
-      tl.to(copyRef.current, { opacity: 0, y: -40, duration: 0.25, ease: "none" }, 0);
+      // Pass 6 #7: the copy holds while the set departs (fade starts at 45%,
+      // not 0), and the released slab is no longer dead — a chapter card
+      // ("The problem with 7%") rises exactly where the next section's
+      // headline will land, turning the void into a match cut.
+      tl.to(copyRef.current, { opacity: 0, y: -40, duration: 0.3, ease: "none" }, 0.45);
       tl.to(
         frame,
         {
@@ -97,6 +104,12 @@ export default function HeroOrrery() {
           ease: "none",
         },
         0.25,
+      );
+      tl.fromTo(
+        chapterRef.current,
+        { opacity: 0, y: 28 },
+        { opacity: 1, y: 0, duration: 0.35, ease: "none" },
+        0.6,
       );
     }, section);
 
@@ -132,8 +145,17 @@ export default function HeroOrrery() {
 
   return (
     <DemoDrawProvider docked={docked}>
-      <section ref={sectionRef} className={reduced ? "relative h-screen" : "relative h-[160vh]"}>
-        <div className="sticky top-0 h-screen">
+      {/* Pass 6 #7/#22: 140vh (was 160 — less released-slab tail) and dvh so
+          iOS Safari's URL bar can't hide the chips row below the fold. */}
+      <section
+        ref={sectionRef}
+        className={
+          reduced
+            ? "relative h-screen supports-[height:100dvh]:h-[100dvh]"
+            : "relative h-[140vh] supports-[height:140dvh]:h-[140dvh]"
+        }
+      >
+        <div className="sticky top-0 h-screen supports-[height:100dvh]:h-[100dvh]">
           {/* the video frame that shrinks to the corner */}
           <div
             ref={frameRef}
@@ -147,12 +169,14 @@ export default function HeroOrrery() {
               sizes="100vw"
               alt="Gold orrery with glass orbs orbiting a glowing core — the VaultDrop prize vault"
               fetchPriority="high"
-              className="absolute inset-0 h-full w-full object-cover"
+              className="hero-set absolute inset-0 h-full w-full object-cover"
             />
             {!reduced && videoReady && (
+              /* §2.1 focus pull: the orrery loop keeps playing as the SET —
+                 blurred, dimmed, clearly behind the Draw Ring. */
               <video
                 ref={videoRef}
-                className="absolute inset-0 h-full w-full object-cover"
+                className="hero-set absolute inset-0 h-full w-full object-cover"
                 autoPlay
                 muted
                 loop
@@ -172,12 +196,27 @@ export default function HeroOrrery() {
             <DemoDrawStage />
           </div>
 
+          {/* Pass 6 #7: the chapter card — rises as the frame docks, so the
+              released slab reads as a beat, not a void. Echoed by Reframe's
+              eyebrow one viewport later. */}
+          {!reduced && (
+            <div
+              ref={chapterRef}
+              aria-hidden
+              className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center opacity-0"
+            >
+              <div className="px-6 text-center font-display text-4xl font-semibold tracking-tight text-bone/80 sm:text-6xl">
+                The problem with {(PARAMS.stakingApy * 100).toFixed(0)}%
+              </div>
+            </div>
+          )}
+
           {/* hero copy — §4 layout surgery: exactly four stacked elements.
               The id anchors the orb exclusion zone (§3.2). */}
           <div
             id="hero-copy"
             ref={copyRef}
-            className="relative z-10 mx-auto flex h-full max-w-6xl flex-col items-start justify-end px-6 pb-44 sm:justify-center sm:pb-32"
+            className="relative z-10 mx-auto flex h-full max-w-6xl flex-col items-start justify-end px-6 pb-[calc(var(--stage-h,180px)+20px)] sm:justify-center sm:pb-32"
           >
             <h1 className="font-display text-[13vw] font-semibold leading-[0.95] tracking-tight sm:text-7xl lg:text-8xl xl:text-[7.5rem]">
               Never lose.
@@ -193,7 +232,7 @@ export default function HeroOrrery() {
               <DemoDrawCta />
               <a
                 href="#how"
-                className="rounded-full border border-bone/25 px-8 py-3.5 font-medium text-bone transition hover:border-bone/60"
+                className="press-ripple press-scale rounded-full border border-bone/25 px-8 py-3.5 font-medium text-bone transition hover:border-bone/60"
               >
                 How it works
               </a>
@@ -296,6 +335,15 @@ export default function HeroOrrery() {
             )}
           </div>
         </button>
+        {/* Pass 6 #15: the PiP carries a join line — mid-page conviction gets
+            an action without hunting for the form. */}
+        <a
+          href={APP_URL}
+          onClick={() => track("cta_click", { cta: "pip" })}
+          className="block border-t border-bone/10 bg-ink/85 px-3 py-1.5 text-center font-mono text-[11px] text-gold hover:bg-ink"
+        >
+          Open the vault →
+        </a>
         <button
           onClick={() => setDismissed(true)}
           aria-label="Dismiss ticker"

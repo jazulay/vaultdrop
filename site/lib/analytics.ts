@@ -10,7 +10,11 @@ export type VdEvent =
   | "demo_personal_win"
   | "mega_ignition_seen"
   | "year_sim_run"
-  | "cta_click";
+  | "cta_click"
+  // Pass 6: the site's sole KPI was invisible — every waitlist outcome now fires.
+  | "waitlist_submit"
+  | "waitlist_result"
+  | "sound_toggled";
 
 declare global {
   interface Window {

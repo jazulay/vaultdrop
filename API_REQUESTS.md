@@ -7,5 +7,6 @@ Contract in hand (read-only, per site prompt §7): `/stats` (tvl_sol, mega_balan
 | # | Endpoint | Needed by | Shape wanted | Status |
 |---|----------|-----------|--------------|--------|
 | 1 | `/time` | Draw countdown (server-time honesty; app prompt §5 lists it for the app — site countdown should use it too rather than client clock) | `{ now_utc: string }` | REQUESTED |
+| 2 | winner event + proof URL (extend `/winners/:epoch` or per-draw) | Share cards at launch (pass 5 §5; surface built now as `site/components/WinnerCard.tsx`) — a real winner's plate exports as a share image with a verifiable link | per winner: `{ amount_sol, epoch, draw_utc, proof_url }` (`proof_url` = on-chain VRF proof / explorer link; never invented client-side) | REQUESTED (post-launch feature, plumbing decision needed before launch) |
 
 *(App-prompt endpoints — `/wallet/:addr/position`, `/wallet/:addr/prizes`, `/caps`, `/rate` — will be filed here when the app build starts.)*

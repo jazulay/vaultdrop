@@ -1,14 +1,14 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useDevState } from "@/lib/devstate";
+import { useVaultData } from "@/lib/vaultData";
 import { OrreryHud } from "@/components/Bits";
 
 /**
  * F. Transfer — jpSOL moves only via the program's transfer_with_twab in v1.
  */
 function TransferInner() {
-  const fx = useDevState();
+  const { fx } = useVaultData();
   const [to, setTo] = useState("");
   const [amount, setAmount] = useState("");
 

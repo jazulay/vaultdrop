@@ -43,7 +43,7 @@ export default function S4Proof() {
         <h2 className="font-display text-4xl font-semibold tracking-tight sm:text-6xl">
           Every draw, provable.
           <br />
-          Every number, on-chain.
+          Every number, <span className="whitespace-nowrap">on-chain.</span>
         </h2>
 
         <p className="mt-6 max-w-2xl text-base text-bone/70">
@@ -55,8 +55,12 @@ export default function S4Proof() {
           .
         </p>
 
-        <div ref={tableRef} className="glass mt-10 overflow-x-auto rounded-2xl">
-          <table className="w-full min-w-[640px] text-left font-mono text-sm">
+        {/* Pass 6 #12: the table can scroll on mobile, but the honesty copy
+            lives OUTSIDE it (below) so it can never clip; the right-edge fade
+            is the scroll affordance. */}
+        <div className="relative mt-10">
+          <div ref={tableRef} className="glass overflow-x-auto rounded-2xl">
+            <table className="w-full min-w-[640px] text-left font-mono text-sm">
             <caption className="sr-only">
               Draw history: epoch, prize pool, winners, VRF proof and settlement
               transaction for every weekly draw
@@ -93,52 +97,68 @@ export default function S4Proof() {
                 <>
                   {/* PREVIEW row — the anatomy of a settled draw. Not a real draw. */}
                   <tr className="ledger-row bg-steel/40 text-bone/45">
-                    <td className="px-5 py-4">
+                    <td className="px-3 py-4 sm:px-5">
                       <span className="mr-3 rounded border border-bone/30 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.15em] text-bone/60">
                         Preview
                       </span>
                       12
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-3 py-4 text-right sm:px-5">
                       {settled ? <Odometer value="118.4" /> : <span className="opacity-0">118.4</span>}{" "}
                       SOL
                     </td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-3 py-4 text-right sm:px-5">
                       {settled ? <Odometer value="20" /> : <span className="opacity-0">20</span>}
                     </td>
-                    <td className="px-5 py-4">
-                      <span className={settled ? "stamp-in inline-block" : "opacity-0"}>proof ↗</span>
-                    </td>
-                    <td className="px-5 py-4">
+                    {/* Placeholder cells, not links — real draws link to the
+                        real artifacts (pass 6 #12). */}
+                    <td className="px-3 py-4 sm:px-5">
                       <span
-                        className={settled ? "stamp-in inline-block" : "opacity-0"}
-                        style={{ animationDelay: "150ms" }}
+                        title="Real draws link to the VRF proof on-chain"
+                        className={`text-bone/35 ${settled ? "stamp-in inline-block" : "opacity-0"}`}
                       >
-                        tx ↗
+                        proof —
                       </span>
                     </td>
-                  </tr>
-                  <tr>
-                    <td colSpan={5} className="px-5 py-8 text-center text-bone/60">
-                      {state === "unavailable" ? (
-                        <span className="slot-unavailable" title={UNAVAILABLE_TOOLTIP}>
-                          —
-                        </span>
-                      ) : (
-                        <>
-                          {PRELAUNCH.draws}
-                          <span className="mt-1 block text-[11px] text-bone/40">
-                            The grey row above is a preview of a draw record — not a real draw.
-                          </span>
-                        </>
-                      )}
+                    <td className="px-3 py-4 sm:px-5">
+                      <span
+                        title="Real draws link to the settlement transaction on-chain"
+                        className={`text-bone/35 ${settled ? "stamp-in inline-block" : "opacity-0"}`}
+                        style={{ animationDelay: "150ms" }}
+                      >
+                        tx —
+                      </span>
                     </td>
                   </tr>
                 </>
               )}
             </tbody>
           </table>
+          </div>
+          {/* right-edge scroll affordance, mobile only */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 right-0 w-10 rounded-r-2xl bg-gradient-to-l from-ink/80 to-transparent sm:hidden"
+          />
         </div>
+
+        {!hasLive && (
+          <div className="mt-4 text-sm text-bone/60">
+            {state === "unavailable" ? (
+              <span className="slot-unavailable" title={UNAVAILABLE_TOOLTIP}>
+                —
+              </span>
+            ) : (
+              <>
+                {PRELAUNCH.draws}
+                <span className="mt-1 block text-[11px] text-bone/40">
+                  The grey row above is a preview of a draw record — not a real
+                  draw.
+                </span>
+              </>
+            )}
+          </div>
+        )}
 
         <div className="mt-8">
           <button

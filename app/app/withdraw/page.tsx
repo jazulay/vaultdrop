@@ -1,8 +1,11 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useDevState } from "@/lib/devstate";
-import { Mono, DegradedBanner, OrreryHud } from "@/components/Bits";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useVaultData } from "@/lib/vaultData";
+import { runTx, buildWithdrawIx, type TxLifecycle } from "@/lib/tx";
+import { Mono, TxState, DegradedBanner, OrreryHud } from "@/components/Bits";
+import { ConnectGate } from "@/components/Wallet";
 
 /**
  * C. Withdraw flow — amount/MAX → quote (0% exit fee) → optional Jupiter leg.
@@ -10,9 +13,22 @@ import { Mono, DegradedBanner, OrreryHud } from "@/components/Bits";
  * Degraded pro-rata variant: verbatim banner + labeled pro-rata formula.
  */
 function WithdrawInner() {
-  const fx = useDevState();
+  const { fx } = useVaultData();
+  const { connection } = useConnection();
+  const wallet = useWallet();
   const [amount, setAmount] = useState("10");
   const [toSol, setToSol] = useState(false);
+  const [life, setLife] = useState<TxLifecycle>({ phase: "idle" });
+
+  const signWithdraw = () =>
+    runTx({
+      connection,
+      wallet,
+      build: () => [
+        buildWithdrawIx(wallet.publicKey!, BigInt(Math.round((parseFloat(amount) || 0) * 1e9))),
+      ],
+      onPhase: setLife,
+    });
   const amt = parseFloat(amount) || 0;
   const receives = (amt / fx.rate).toFixed(4);
   const proRataRate = 0.9862; // fixture: post-loss proportional rate
@@ -65,12 +81,54 @@ function WithdrawInner() {
           Also swap JitoSOL → SOL (Jupiter — second transaction, second signature)
         </label>
 
-        <button
-          disabled={fx.apiDown || amt <= 0}
-          className="mt-5 w-full rounded-full bg-signal py-3.5 font-medium text-ink transition disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          {toSol ? "Sign step 1 of 2 — withdraw" : "Sign withdrawal"}
-        </button>
+        {wallet.connected ? (
+          <button
+            onClick={signWithdraw}
+            disabled={
+              fx.apiDown ||
+              amt <= 0 ||
+              ["building", "simulating", "awaiting-signature", "pending"].includes(life.phase)
+            }
+            className="mt-5 w-full rounded-full bg-signal py-3.5 font-medium text-ink transition disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            {life.phase === "awaiting-signature"
+              ? "Approve in your wallet…"
+              : toSol
+                ? "Sign step 1 of 2 — withdraw"
+                : "Sign withdrawal"}
+          </button>
+        ) : (
+          <div className="mt-5">
+            <ConnectGate action="withdraw" />
+          </div>
+        )}
+
+        {life.phase === "program-pending" && (
+          <p className="mt-3 font-mono text-xs leading-relaxed text-gold">
+            TRANSACTION-READY · PROGRAM PENDING — signing works; the vault
+            program isn&apos;t deployed yet. Nothing was sent.
+          </p>
+        )}
+        {life.phase === "pending" && (
+          <div className="mt-3">
+            <TxState phase="pending" sig={`${life.sig.slice(0, 4)}…${life.sig.slice(-4)}`} />
+          </div>
+        )}
+        {life.phase === "confirmed" && (
+          <div className="mt-3">
+            <TxState phase="confirmed" />
+          </div>
+        )}
+        {(life.phase === "failed" || life.phase === "sim-fail") && (
+          <div className="mt-3">
+            <TxState phase="failed" error={life.error} />
+          </div>
+        )}
+        {life.phase === "wallet-reject" && (
+          <div className="mt-3">
+            <TxState phase="failed" error="request rejected in wallet — nothing was sent" />
+          </div>
+        )}
 
         <p className="mt-3 font-mono text-[11px] leading-relaxed text-bone/50">
           Withdrawing ends your entries in future draws. Your prizes already won remain

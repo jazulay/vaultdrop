@@ -6,7 +6,10 @@ const FEE_PCT = Math.round(PARAMS.protocolFee * 100);
 export const FAQ: { q: string; a: string }[] = [
   {
     q: "Is my deposit ever at risk?",
-    a: "No. Prizes are funded entirely from staking yield. The program can only move yield into the prize escrow — your principal is not able to fund prizes. You can withdraw your full balance at any time. For the full picture of what can and can't go wrong, see 'What can go wrong' above.",
+    // Pass 6 #14: never a flat "No." — Safety honestly admits smart-contract
+    // and stake-pool risk two scrolls up, and this string ships into Google
+    // via the FAQPage JSON-LD. Strong true claim, no false absolute.
+    a: "Not from the draws. Prizes are funded only from staking yield — the program structurally cannot spend principal on prizes — and you can withdraw your full balance at any time. Smart-contract risk and JitoSOL stake-pool risk do exist, like anywhere in DeFi: see 'What can go wrong' above for exactly what they are and what we do about each.",
   },
   {
     q: "What can I actually win?",
@@ -42,6 +45,6 @@ export const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "Where is VaultDrop available?",
-    a: "We're finalizing the list of supported regions with counsel. It will be published on this page before deposits open — and if you're on the waitlist, we'll tell you the moment your region is confirmed. VaultDrop will not accept deposits from unsupported regions.",
+    a: "We're finalizing the list of supported regions with counsel. It will be published on this page before deposits open. VaultDrop will not accept deposits from unsupported regions.",
   },
 ];

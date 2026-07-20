@@ -6,7 +6,13 @@ import { useEffect, useRef } from "react";
  * Magnetic hover (§5.6): the child drifts up to ~5px toward the cursor and
  * springs back on leave. Fine pointers only; inert under reduced motion.
  */
-export default function Magnetic({ children }: { children: React.ReactNode }) {
+export default function Magnetic({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -36,7 +42,7 @@ export default function Magnetic({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div ref={ref} className="inline-block will-change-transform">
+    <div ref={ref} className={`inline-block will-change-transform ${className}`}>
       {children}
     </div>
   );

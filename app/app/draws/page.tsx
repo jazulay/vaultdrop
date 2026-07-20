@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
-import { useDevState } from "@/lib/devstate";
+import { useVaultData } from "@/lib/vaultData";
 import { Mono, Dash, OrreryHud } from "@/components/Bits";
 
 /**
@@ -10,7 +10,7 @@ import { Mono, Dash, OrreryHud } from "@/components/Bits";
  * WS0: layout with fixture epoch; nothing presented as live.
  */
 function DrawsInner() {
-  const fx = useDevState();
+  const { fx } = useVaultData();
 
   return (
     <div className="flex flex-col gap-4">

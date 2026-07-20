@@ -6,7 +6,7 @@
 | 2 | Legal copy (ToS / Privacy / Draw Rules) | `/legal` page | Holding copy, no bracketed placeholders (CI guard enforces) | Joseph's counsel |
 | 3 | Epoch-1 open date | Countdowns (hero, Mega, PiP) | Hidden until `NEXT_PUBLIC_EPOCH1_UTC` is set | Joseph (audit Appendix B Q3) |
 | 4 | Docs link | jpSOL strip + footer trust strip | `#` href with `data-stub` | Docs URL (Q7) |
-| 5 | Waitlist endpoint | `S7Cta` form | Honest "not connected" state until `NEXT_PUBLIC_WAITLIST_URL` set | Hermes (Q6; double-opt-in policy TBD) |
+| 5 | ~~Waitlist endpoint~~ | — | **RETIRED (day-one pivot, 2026-07-20)**: there is no waitlist. The S7 close is the vault entrance; every CTA routes to the app (`NEXT_PUBLIC_APP_URL`, default = the deployed app service). Launch-gating moved to BLOCKER.md (IDL, program IDs, API base, RPC, mainnet flip). | — |
 | 6 | Calculator protocol params | `site/lib/calc.ts` `PARAMS` | PLACEHOLDER constants, labeled "illustrative" in UI | Program team (Q1: APY feed, fee %, Mega share, winners/draw) |
 | 7 | VRF provider name + program address + audit status | Proof + Safety + footer | Named generically ("on-chain VRF"); audit/upgrade-authority lines say "published before launch" | Hermes/Joseph (Q4) |
 | 8 | Social links (X, Discord) | Footer trust strip | Omitted (never invented) | Joseph (Q7) |
@@ -15,8 +15,11 @@
 | 11 | `calculator-orb-mint-loop` video | — | Keyframe generated (`assets/keyframes/orbmint.png`), video not yet cut into the calculator | Design decision after launch params land |
 | 12 | "lottery" lexicon | Hero sub, OG copy, Reframe | REVERTED (audit pass 2 NF-3, 2026-07-16): "lottery" removed site-wide ("weekly tickets"); the pass-1 verbatim copy was the auditor's miss. Banned pending counsel: "lottery", "sweepstakes", "raffle" (now CI-enforced in sources too) | Counsel (may re-approve) |
 | 13 | Analytics provider | `site/lib/analytics.ts` | Pass-3 §11 events push to `window.dataLayer` only — no provider wired, nothing leaves the page | Joseph (pick provider; attach tag manager) |
-| 14 | `mega-ignition-fullbleed` asset | Demo-draw hero (§4.2) | Mega ignition uses the existing `ignite-moment` clip scaled full-screen + CSS bloom | Higgsfield generation (pass-3 §10.1) |
-| 15 | Sound layer (§5.7) | — | Not built (optional, OFF-by-default spec; no audio assets exist) | Design decision + audio kit (pass-3 §10.4) |
+| 14 | `mega-ignition-fullbleed` asset | Demo-draw hero (§4.2) | **RESOLVED (pass 5, 2026-07-17)**: generated + shipped (`site/public/higgsfield/video/vaultdrop-mega-ignition-fullbleed.*`), wired into the ignition overlay. `reframe-drip-loop` v2 (pass-2 NF-6) also regenerated on a pure void and shipped in place. | — |
+| 15 | Sound layer (§5.7) | `site/lib/sound.ts` | **RESOLVED (pass 6, 2026-07-19)**: fully synthesized Web Audio (no asset files) — charge riser, resolve bell, crown shimmer, mega boom, win chime, chip ticks. OFF by default, persisted, muted on hidden tabs; pill beside the SIMULATION badge. | — |
+| 16 | Share-card export | `site/components/WinnerCard.tsx` (pass 5 §5) | Surface designed + rendering the demo win plate now; the image-export/share plumbing for REAL winners ships at launch | Hermes winner event + proof URL (API_REQUESTS #2) + launch |
+| 17 | Powerball comparison strip (pass 5 §3.4) | Calculator, behind `NEXT_PUBLIC_COUNSEL_STRIP=approved` | Built, **OFF by default** — frames VaultDrop against a lottery brand, which is the exact classification counsel is deciding. Ships only on explicit written sign-off; never "temporarily". | Joseph's counsel |
+| 18 | SOL/USD price dependency | `site/lib/price.ts` (pass 5 §3.5) | Live external feed: Pyth's public price API (`hermes.pyth.network` — Pyth's hosted service, no relation to our Hermes gateway). Dollars hide on failure/staleness (10 min), never stale. Not a stub per se — logged so the external dependency is on the record. | Optionally proxy via our API post-launch |
 
 ## Answers still needed (audit Appendix B)
 Q1 calc params · Q2 Mega seed · Q3 epoch-1 date · Q4 VRF/program/audit · Q5 withdrawal latency (FAQ hedges honestly) · Q6 waitlist endpoint + opt-in · Q7 socials/docs · Q8 confirm 100% of yield routes to prizes (FAQ "never win" answer assumes yes, consistent with the fee disclosure, which renders from `PARAMS.protocolFee` as of audit pass 2 NF-1)

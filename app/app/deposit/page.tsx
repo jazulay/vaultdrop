@@ -1,17 +1,35 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useDevState } from "@/lib/devstate";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useVaultData } from "@/lib/vaultData";
+import { runTx, buildDepositIx, type TxLifecycle } from "@/lib/tx";
 import { Mono, TxState, DegradedBanner, OrreryHud } from "@/components/Bits";
+import { ConnectGate } from "@/components/Wallet";
 
 /**
  * B. Deposit flow — asset in → amount (preflights) → review (verbatim lines)
- * → per-leg signing states. WS0: all states rendered from fixtures.
+ * → per-leg signing states. Day-one pivot: wallet-gated, live data when the
+ * API exists, and the sign button runs the REAL tx lifecycle (lib/tx.ts).
+ * The WS0 scenario states remain renderable via ?state= for QA.
  */
 function DepositInner() {
-  const fx = useDevState();
+  const { fx } = useVaultData();
+  const { connection } = useConnection();
+  const wallet = useWallet();
   const [asset, setAsset] = useState<"jitosol" | "sol">("jitosol");
   const [amount, setAmount] = useState("10");
+  const [life, setLife] = useState<TxLifecycle>({ phase: "idle" });
+
+  const signDeposit = () =>
+    runTx({
+      connection,
+      wallet,
+      build: () => [
+        buildDepositIx(wallet.publicKey!, BigInt(Math.round((parseFloat(amount) || 0) * 1e9))),
+      ],
+      onPhase: setLife,
+    });
 
   const amt = parseFloat(amount) || 0;
   const belowMin = fx.scenario === "below-min" || (amt > 0 && amt < 0.1);
@@ -117,13 +135,78 @@ function DepositInner() {
           r = {fx.rate} — restated at review; if r changes before send, the quote is re-simulated
           and re-presented.
         </div>
-        <button
-          disabled={blocked || amt <= 0}
-          className="mt-4 w-full rounded-full bg-gold py-3.5 font-medium text-ink transition disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          {asset === "sol" ? "Sign step 1 of 2 — swap" : "Sign deposit"}
-        </button>
+        {wallet.connected ? (
+          <button
+            onClick={signDeposit}
+            disabled={
+              blocked ||
+              amt <= 0 ||
+              life.phase === "building" ||
+              life.phase === "simulating" ||
+              life.phase === "awaiting-signature" ||
+              life.phase === "pending"
+            }
+            className="mt-4 w-full rounded-full bg-gold py-3.5 font-medium text-ink transition disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            {life.phase === "awaiting-signature"
+              ? "Approve in your wallet…"
+              : life.phase === "simulating" || life.phase === "building"
+                ? "Simulating…"
+                : asset === "sol"
+                  ? "Sign step 1 of 2 — swap"
+                  : "Sign deposit"}
+          </button>
+        ) : (
+          <div className="mt-4">
+            <ConnectGate action="deposit" />
+          </div>
+        )}
       </section>
+
+      {/* Live tx lifecycle (real machinery — lib/tx.ts) */}
+      {life.phase === "program-pending" && (
+        <section className="glass rounded-2xl border-gold/30 p-5">
+          <div className="font-mono text-sm text-gold">TRANSACTION-READY · PROGRAM PENDING</div>
+          <p className="mt-2 text-sm leading-relaxed text-bone/70">
+            Your wallet is connected and the signing flow is live — the vault
+            program itself isn&apos;t deployed yet. The moment it is, this exact
+            button makes the deposit. Nothing was sent.
+          </p>
+        </section>
+      )}
+      {life.phase === "pending" && (
+        <section className="glass rounded-2xl p-5">
+          <TxState phase="pending" sig={`${life.sig.slice(0, 4)}…${life.sig.slice(-4)}`} />
+        </section>
+      )}
+      {life.phase === "confirmed" && (
+        <section className="glass rounded-2xl p-5">
+          <TxState phase="confirmed" />
+          <a
+            href={life.explorer}
+            target="_blank"
+            rel="noreferrer"
+            className="link-quiet mt-2 inline-block font-mono text-xs text-bone/70"
+          >
+            {life.sig.slice(0, 8)}… on Solscan ↗
+          </a>
+        </section>
+      )}
+      {life.phase === "wallet-reject" && (
+        <section className="glass rounded-2xl p-5">
+          <TxState phase="failed" error="request rejected in wallet — nothing was sent" />
+        </section>
+      )}
+      {life.phase === "sim-fail" && (
+        <section className="glass rounded-2xl p-5">
+          <TxState phase="failed" error={life.error} />
+        </section>
+      )}
+      {life.phase === "failed" && (
+        <section className="glass rounded-2xl p-5">
+          <TxState phase="failed" error={life.error} />
+        </section>
+      )}
 
       {/* Post-confirm / per-leg states, scenario-driven */}
       {fx.scenario === "pending" && (

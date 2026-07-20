@@ -1,0 +1,74 @@
+{
+  "domContentLoadedMs": 93,
+  "networkIdleMs": 906,
+  "perf": {
+    "ttfb": 14,
+    "domInteractive": 70,
+    "load": 123,
+    "fcp": 100,
+    "transferKB": 13,
+    "resources": 25,
+    "totalResourceKB": 1568
+  },
+  "pageHeightPx": 10564,
+  "viewportsTall": "11.7",
+  "fullText": "Skip to content\nVaultDrop\nHOW\nPROOF\nJoin epoch 1\nDemo draw resolved: 20 winners from a 85 SOL demo pool. Mega grew 36.3 to 1,418. Your orb: not this one — your odds carry.\nSHOWING 16 OF ~4,000 DEPOSITORS\nYOU\ndemo epoch -51 · 84.8 SOL · 20 winners · odds honored ✓\nSIMULATION · REAL ODDS · DEMO SOL\nDEMO DRAW IN\n0:26\nDEMO POOL\n≈ 85 SOL · 20 winners\nMEGA (DEMO) — GROWS EVERY MISS\n1,418 SOL+36.3 ▲\nYOUR DEMO ORB\nyour shot ≈ 1-in-200\n5 SOL\n25 SOL\n100 SOL\n1,000 SOL\ntake it out\n1 demo draw played · Mega grew +36 SOL while you watched\nNever lose.\nSometimes win big.\n\nYour staking yield becomes weekly tickets. Your SOL stays yours — withdraw anytime.\n\nMake it real — join epoch 1\nHow it works\n\nNo lockups · Principal never plays · Draws provable on-chain\n\nSCROLL\nMEGA (DEMO) · 1,418 SOL\ndraw in 0:26\n×\nTHE PROBLEM WITH 7%\nStaking 25 SOL pays you about $0.37 a day. Feel anything?\n\nSeven percent a year is good math and terrible television. VaultDrop routes the same yield you already earn into something with a pulse: every week, your balance is a stack of tickets in a draw you can verify. Win, and it's real SOL in your wallet. Don't, and you've lost exactly nothing — your deposit never left your reach.\n\nSTAKING\n25 SOL → +0.0048 SOL ($0.37) · every day · forever\ncertain. silent.\nVAULTDROP\n52 draws a year + one rolling Mega Vault\nsame yield. different physics.\nSee your odds →\nHow it works\n01\n\nDeposit SOL. Get jpSOL — same value, always redeemable.\n\n02\n\nHolding is your ticket. Weight = your balance × time. No lockups.\n\n03\n\nWin from the yield. Or withdraw everything, anytime. Principal never plays.\n\nYOUR NUMBERS\nTwo futures for the same deposit\n\nSlide your deposit. These are the same formulas the program uses — nothing hidden.\n\nYOUR DEPOSIT\n100.0 SOL7,705 USD\n0.5\n10\n100\n1,000 SOL\nIF THE VAULT HOLDS\n25,000 SOLepoch-1 scale\n100,000 SOL\n500,000 SOL\n\nSmall vault: you win often, for less. Big vault: you win rarely, for life-changing money. Same expected value either way — they're just different games.\n\nRight now the vault is empty. At epoch-1 scale your 100 SOL is a big fish in a small pond — a shot roughly every 13 Sundays instead of every 50. That version of the game only exists once.\n\nTHE TWO FUTURES\nSOL $77 · live · 02:53 UTC · Pyth\nSTAKING ALONE\n100 SOL · 7% APY · $7,705\nThis week\n+0.135 SOL\n$10\nThis month\n+0.583 SOL\n$45\nThis year\n+7 SOL\n$539\nYour best week ever\n0.135 SOL\n$10\nYour worst week ever\n0.135 SOL\n$10\n\n52 weeks, every one identical. Certain. Silent.\n\nWITH VAULTDROP\nSame 100 SOL. Same 7%. It just plays.\nMost weeks\n0 SOL\n$0.00\n1 week in 13\n+1.06 SOL\n$82\n1 Sunday in 26← the Mega Vault\n+236 SOL\n$18,202\nYour best week ever\n236 SOL\n$18,202\nYour worst week ever\n$0 — and you still have your 100 SOL\n\n≈ 98.5% chance of at least one win this year · 20 winners weekly from a ≈ 21 SOL pool\n\nOne simulated year at true odds (demo) — drag the slider and it re-rolls.\n\nWHAT IT ACTUALLY COSTS YOU\nStaking pays you\n7 SOL\n$539\nVaultDrop routes to prizes← your expected take\n6.3 SOL\n$485\nThe difference — that's the fee\n−0.7 SOL\n−$54\n\n$1.04 a week is the whole price of the game. It buys 52 shots at $82 and ~2 shots at $18,202. Your $7,705 never moves, and you can withdraw it any time.\n\nNo amount of 7% will ever change your life — linear yield can't produce a life-changing outcome at any horizon. A skewed payout is the only mechanism that turns small savings into large sums, and here the ticket doesn't cost you the deposit.\n\nRun it again\n·\n·\n·\n·\n·\n·\n·\n·\n·\n·\n+1.1\n·\n·\n·\n+1.1\n·\n·\n·\n·\n·\n·\n·\n·\n·\n·\n·\n·\n·\n·\n·\n·\n·\n·\n·\n·\n·\n·\n·\n+1.1\n+1.1\n·\n·\n·\n·\n·\n+1.1\n·\n·\n·\n·\nM\n·\n\nYour year: 5 wins · 5.3 SOL ($408) · principal untouched: 100 SOL (demo, real odds)\nThe vault's Mega landed 2× that year — someone else's week.\n\nPrincipal at risk in the draw: 0 SOL\n\nOver time, expected value ≈ the yield you route in, minus the protocol fee. What changes is the shape: instead of a drip, you hold a shot.\n\nIllustrative — final protocol parameters (APY feed, fee, winner count, Mega share) are confirmed at launch. Odds share assumes a steady balance held the full week. Dollar figures use the live Pyth SOL/USD price shown above and hide when the feed is unavailable.\n\nTHE MEGA VAULT\nSEEDING · EPOCH 1 SOON\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n,\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9\nSOLDEMO\n\nIt grows until someone takes it.\n\nEvery week it doesn't hit, it grows.\n\n1-in-26 every Sunday. Misses roll over. On average it lands about twice a year.\n\n… 31 earlier misses\nW32 +36.3\nW33 +36.3\nW34 +36.3\nW35 +36.3\nW36 +36.3\nW37 +36.3\nW38 +36.3\nW39 +36.3\n= 1,418 SOL and rolling\n\nthe live demo vault's actual miss history — same ledger as the hero, same parameters as the calculator\n\nEPOCH 1 OPENS\ndate announced to the waitlist first\nEvery draw, provable.\nEvery number, on-chain.\n\nRandomness by on-chain VRF, settled on Solana. Anyone can re-derive every winner from the proof — here's how.\n\nDraw history: epoch, prize pool, winners, VRF proof and settlement transaction for every weekly draw\nEPOCH\tPOOL\tWINNERS\tVRF PROOF\tSETTLE TX\nPREVIEW12\t\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n.\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n SOL\t\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n\tproof ↗\ttx ↗\nDraw history will appear here after epoch 1. Every draw ships with its proof.\nThe grey row above is a preview of a draw record — not a real draw.\nHow our draws are verified +\nWhat can go wrong (and what can't)\nCAN'T\nYour principal funding prizes. The program can only move yield into the prize escrow — deposits are structurally out of its reach. The invariant is one line of math, published in the docs.\nBeing locked in. jpSOL redeems at the program rate any time. No lockups, no exit fee, no permission.\nCAN — AND WHAT WE DO ABOUT IT\nSmart-contract bugs. The programs are open source; audit status will be published on this page before deposits open.\nJitoSOL exposure. Deposits are held as JitoSOL, a liquid-staked SOL token — its own contract and stake-pool risk exist. If the stake pool ever took a loss, withdrawals switch to a uniform pro-rata rate: everyone exits at the same rate, order doesn't matter.\nVRF liveness. If randomness is delayed, the draw is delayed. Funds are unaffected — withdrawals keep working.\nUpgrade authority. Who holds it, and under what multisig, is disclosed here before launch.\nQuestions\nIs my deposit ever at risk?\n+\nNo. Prizes are funded entirely from staking yield. The program can only move yield into the prize escrow — your principal is not able to fund prizes. You can withdraw your full balance at any time. For the full picture of what can and can't go wrong, see 'What can go wrong' above.\nWhat can I actually win?\n+\nWhat happens if I never win?\n+\nCan whales win everything?\n+\nWhy balance × time?\n+\nHow do withdrawals work?\n+\nWhat is JitoSOL doing here?\n+\nWhat are the fees?\n+\nHow are winners chosen?\n+\nWhere is VaultDrop available?\n+\nFOR BUILDERS\njpSOL\n\nUnder the hood: deposits mint jpSOL, a SOL-value-stable share token. 1 jpSOL redeems for its SOL value at the program rate, any time — draw exposure rides along for free.\n\ninvariant: sum(jpSOL supply × rate) ≤ vault assets · deposits mint at rate · withdrawals burn at rate · yield never mints shares\n\nRead the docs ↗\nYour money, in orbit.\n\nThe vault opens soon. Join the waitlist and be there for epoch 1.\n\nEmail address\nJoin the waitlist\n\nDeposits open at launch. The waitlist is the queue.\n\nVaultDrop — prize savings on Solana\nDocs\nProofs\nLegal",
+  "sections": [
+    {
+      "id": null,
+      "h2": null,
+      "heightPx": 1440
+    },
+    {
+      "id": null,
+      "h2": "Staking 25 SOL pays you about $0.37 a day. Feel anything?",
+      "heightPx": 1203
+    },
+    {
+      "id": "how",
+      "h2": "How it works",
+      "heightPx": 690
+    },
+    {
+      "id": "calculator",
+      "h2": "Two futures for the same deposit",
+      "heightPx": 1987
+    },
+    {
+      "id": "mega",
+      "h2": null,
+      "heightPx": 900
+    },
+    {
+      "id": "proof",
+      "h2": "Every draw, provable.\nEvery number, on-chain.",
+      "heightPx": 794
+    },
+    {
+      "id": null,
+      "h2": "What can go wrong (and what can't)",
+      "heightPx": 770
+    },
+    {
+      "id": null,
+      "h2": "Questions",
+      "heightPx": 1123
+    },
+    {
+      "id": null,
+      "h2": null,
+      "heightPx": 276
+    },
+    {
+      "id": "waitlist",
+      "h2": "Your money, in orbit.",
+      "heightPx": 900
+    },
+    {
+      "id": null,
+      "h2": null,
+      "heightPx": 97
+    }
+  ],
+  "mobilePageHeightPx": 12719
+}

@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useStats } from "@/lib/api";
-import { LAUNCHED, EPOCH1_UTC } from "@/lib/launch";
+import { APP_URL, LAUNCHED, EPOCH1_UTC } from "@/lib/launch";
 import { nextSunday18UTC } from "@/lib/format";
 import { rejectionInt } from "@/lib/draw";
 import { initLedger, useDemoLedger } from "@/lib/demoLedger";
+import { track } from "@/lib/analytics";
 import Odometer from "@/components/Odometer";
 import Countdown from "@/components/Countdown";
 import VideoLoop from "@/components/VideoLoop";
@@ -85,9 +86,11 @@ function RolloverStrip() {
   return (
     <div ref={ref} className="mt-10 max-w-2xl">
       <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
+        {/* Pass 6 #10: cells sit on ink plates so the receipt survives the sun —
+            this line legitimizes the giant number; it must never be illegible. */}
         {earlier > 0 && (
           <span
-            className={`rounded-md border border-bone/20 px-2 py-1 text-bone/50 ${seen ? "strip-cell" : "opacity-0"}`}
+            className={`rounded-md border border-bone/20 bg-ink/70 px-2 py-1 text-bone/60 backdrop-blur-[2px] ${seen ? "strip-cell" : "opacity-0"}`}
           >
             … {earlier} earlier miss{earlier === 1 ? "" : "es"}
           </span>
@@ -95,7 +98,7 @@ function RolloverStrip() {
         {cells.map((week, i) => (
           <span
             key={week}
-            className={`rounded-md border px-2 py-1 ${seen ? "strip-cell" : "opacity-0"}`}
+            className={`rounded-md border bg-ink/70 px-2 py-1 backdrop-blur-[2px] ${seen ? "strip-cell" : "opacity-0"}`}
             style={{
               ...(seen ? { animationDelay: `${(i + 1) * 120}ms` } : {}),
               borderColor: `rgba(201,162,39,${0.25 + (i / Math.max(1, shown - 1)) * 0.5})`,
@@ -106,13 +109,13 @@ function RolloverStrip() {
           </span>
         ))}
         <span
-          className={`px-1 font-medium text-gold ${seen ? "strip-cell" : "opacity-0"}`}
+          className={`rounded-md bg-ink/70 px-2 py-1 font-medium text-gold backdrop-blur-[2px] ${seen ? "strip-cell" : "opacity-0"}`}
           style={seen ? { animationDelay: `${(shown + 1) * 120}ms` } : undefined}
         >
           = {led.pot.toLocaleString("en-US", { maximumFractionDigits: 0 })} SOL and rolling
         </span>
       </div>
-      <p className="mt-2 font-mono text-[10px] text-bone/45">
+      <p className="mt-2 inline-block rounded bg-ink/60 px-1.5 py-0.5 font-mono text-[10px] text-bone/60">
         the live demo vault&apos;s actual miss history — same ledger as the hero, same
         parameters as the calculator
       </p>
@@ -173,6 +176,9 @@ export default function S3Mega() {
         alt="Molten gold sphere flaring — the Mega Vault jackpot growing"
       />
       <div className="absolute inset-0 bg-gradient-to-r from-ink/85 via-ink/50 to-transparent" />
+      {/* Pass 6 #10: at <md the copy sits over the sun's brightest area — one
+          extra scrim keeps the words in charge of the moment. */}
+      <div className="absolute inset-0 bg-ink/45 md:hidden" />
       <Embers />
 
       <div className="mega-inner relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-24">
@@ -206,7 +212,7 @@ export default function S3Mega() {
         </div>
         {!megaValue && (
           <p className="mt-4 max-w-3xl font-display text-2xl font-semibold leading-tight text-gold/80 sm:text-3xl">
-            It grows until someone takes it.
+            It grows until someone <span className="whitespace-nowrap">takes it.</span>
           </p>
         )}
 
@@ -224,11 +230,19 @@ export default function S3Mega() {
           <span className="text-[11px] uppercase tracking-[0.25em] text-bone/50">
             {LAUNCHED ? "Next draw · Sunday 18:00 UTC" : "Epoch 1 opens"}
           </span>
-          <Countdown
-            targetUtc={countdownTarget}
-            fallback="date announced to the waitlist first"
-            className="text-lg text-bone"
-          />
+          {countdownTarget ? (
+            <Countdown targetUtc={countdownTarget} fallback="" className="text-lg text-bone" />
+          ) : (
+            /* Pass 6 #15: the page's best hook, at its emotional peak, was
+               inert text — now it's the ask it always wanted to be. */
+            <a
+              href={APP_URL}
+              className="link-quiet text-lg text-bone"
+              onClick={() => track("cta_click", { cta: "mega" })}
+            >
+              be in orbit when it opens — enter the vault →
+            </a>
+          )}
         </div>
       </div>
     </section>

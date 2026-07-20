@@ -7,7 +7,7 @@
     "build": "next build && node scripts/check-stubs.mjs",
     "start": "next start",
     "lint": "next lint",
-    "test": "node scripts/calc.test.mjs && node scripts/draw.test.mjs"
+    "test": "node scripts/calc.test.mjs && node scripts/draw.test.mjs && node scripts/ring.test.mjs"
   },
   "dependencies": {
     "gsap": "^3.15.0",

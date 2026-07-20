@@ -1,4 +1,5 @@
 import SmoothScroll from "@/components/SmoothScroll";
+import SiteHeader from "@/components/SiteHeader";
 import HeroOrrery from "@/components/HeroOrrery";
 import Reframe from "@/components/sections/Reframe";
 import S2How from "@/components/sections/S2How";
@@ -9,7 +10,6 @@ import Safety from "@/components/sections/Safety";
 import S5Jpsol from "@/components/sections/S5Jpsol";
 import S6Faq from "@/components/sections/S6Faq";
 import S7Cta from "@/components/sections/S7Cta";
-import { CTA } from "@/lib/launch";
 import { FAQ } from "@/lib/faq";
 
 /* Section order per audit §6:
@@ -36,25 +36,8 @@ export default function Home() {
       </a>
       <SmoothScroll />
 
-      <header className="absolute left-0 right-0 top-0 z-40 flex items-center justify-between px-6 py-5 sm:px-10">
-        <div className="font-display text-xl font-semibold tracking-tight">
-          VaultDrop
-        </div>
-        <nav className="flex items-center gap-6 font-mono text-xs uppercase tracking-[0.15em] text-bone/60">
-          <a href="#how" className="hidden hover:text-bone sm:block">
-            How
-          </a>
-          <a href="#proof" className="hidden hover:text-bone sm:block">
-            Proof
-          </a>
-          <a
-            href="#waitlist"
-            className="rounded-full border border-gold/50 px-5 py-2 normal-case tracking-normal text-gold transition hover:bg-gold hover:text-ink"
-          >
-            {CTA.navPill}
-          </a>
-        </nav>
-      </header>
+      {/* Pass 6 #15: header returns on scroll-up (components/SiteHeader). */}
+      <SiteHeader />
 
       {/* Skip-link target: top of main content, directly past the header nav
           (audit pass 2 NF-5 — #how skipped keyboard users past Reframe). */}
@@ -76,9 +59,9 @@ export default function Home() {
           {/* Trust strip (audit §6.10) — only live links render; X / Discord /
               Program / Audit land here as they become real (STUBS.md). */}
           <div className="flex flex-wrap gap-6 font-mono text-xs text-bone/40">
-            <a href="#" data-stub="docs-link" className="link-quiet">
-              Docs
-            </a>
+            {/* Pass 6 #8: no dead anchors — "Docs" returns as a link when the
+                URL exists (STUBS.md #4). */}
+            <span title="Published before deposits open">Docs — soon</span>
             <a href="/proofs" className="link-quiet">
               Proofs
             </a>

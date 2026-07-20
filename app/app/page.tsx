@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 import Link from "next/link";
-import { useDevState } from "@/lib/devstate";
+import { useVaultData } from "@/lib/vaultData";
 import { Drum, Dash, Mono, DegradedBanner, OrreryHud } from "@/components/Bits";
 
 function Countdown({ target }: { target: string | null }) {
@@ -12,7 +12,7 @@ function Countdown({ target }: { target: string | null }) {
 }
 
 function HomeInner() {
-  const fx = useDevState();
+  const { fx } = useVaultData();
   const empty = fx.balanceSol === 0;
 
   return (

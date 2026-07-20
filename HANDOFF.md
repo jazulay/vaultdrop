@@ -6,10 +6,24 @@ map. `README.md` wins on commands/paths if anything here drifts.
 
 ## Current state — one sentence
 
-The `site/` marketing site is built through **four audit passes**, live on
+**DAY-ONE PIVOT (2026-07-20, Joseph): there is no waitlist — the full
+experience (gameplay, deposits, wallet signing) ships live from day one.**
+The `app/` vault app is now a second Railway service
+(https://app-production-c038.up.railway.app) with real wallet connect and
+complete transaction machinery behind the IDL seam; the site's CTAs all route
+there. **BLOCKER.md is now the launch-gating list** (IDL, program IDs, API
+base, RPC, mainnet flip — Hermes-owned). Read it before touching launch state.
+
+The `site/` marketing site is built through **five audit passes**, live on
 Railway, and its centerpiece is an honestly-labeled **demo draw** that runs in
-the hero at true odds. Nothing is blocked on the frontend; the open items are
-owner answers and Hermes-side wiring (below).
+the hero at true odds — since pass 5 on an owned **Draw Ring** (`lib/ring.ts`,
+geometry derived from the measured layout, CI-asserted text-safe), with a
+live-dollar **Two Futures** calculator (Pyth SOL/USD via `lib/price.ts`;
+dollars hide on feed failure). Pass 5 also settled the EV question permanently:
+EV including every prize chance is DOWN by exactly the fee (closed system) —
+locked in `scripts/calc.test.mjs`; the frame is "the yield is boring; here is
+your real chance at something meaningful." Nothing is blocked on the frontend;
+the open items are owner answers and Hermes-side wiring (below).
 
 ## Where everything lives
 
@@ -119,18 +133,26 @@ the repo:
 - Pass 2 (verification, NF-1…NF-6) → `site/docs/AUDIT_PASS2_RESPONSE.md`
 - Pass 3 (the adrenaline layer — built the demo draw) → `site/docs/PASS3_RESPONSE.md`
 - Pass 4 (the volume pass — amplitude + 6 bugs) → `site/docs/PASS4_RESPONSE.md`
-- Captures: `site/docs/pass3/`, `site/docs/pass4/`.
+- Pass 5 (the ring, the money, the hit — Draw Ring + Two Futures + assets) → `site/docs/PASS5_RESPONSE.md`
+- Pass 6 (Fable's own nine-lens self-audit — funnel repair, honesty-apparatus
+  fixes, game pacing, sound layer, persistent demo world) → `site/docs/PASS6_SELF_AUDIT.md`
+  (includes the verified-but-unshipped roadmap: share loop, RNG receipts,
+  twin-worlds sim, tokenization sweep)
+- Captures: `site/docs/pass3/` … `site/docs/pass6/`.
 
-**The next audit (pass 5) will land as a new `.md` in `~/Downloads`.** Read the
+**The next audit (pass 7) will land as a new `.md` in `~/Downloads`.** Read the
 matching-named response docs first to see what each earlier pass already
 settled before you touch anything.
 
 ## Open items (not frontend blocks — don't "fix" these blind)
 
 - **Owner answers** (Joseph): epoch-1 date, VRF provider/program/audit links,
-  social + docs URLs, final `PARAMS`, waitlist endpoint, Mega seed decision.
-- **Higgsfield assets** (`STUBS.md` #14): `mega-ignition-fullbleed` and
-  `reframe-drip-loop` v2. Interim treatments are in place and look right.
+  social + docs URLs, final `PARAMS`, waitlist endpoint. Settled in pass 5:
+  Mega seeding **declined**; EV frame **closed** (§3.1); zero-fee epoch 1
+  remains an owner-only option, not built.
+- **Higgsfield assets**: both closed in pass 5 (`STUBS.md` #14) —
+  `mega-ignition-fullbleed` generated + wired, `reframe-drip-loop` v2 on a
+  pure void shipped in place.
 - **Deferred** (`STUBS.md` #13, #15): analytics provider (events fire to
   dataLayer only); optional sound layer (not built).
 - **For the next audit to measure on device:** 60fps on mid-tier mobile and

@@ -3,22 +3,38 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { SCENARIOS } from "@/lib/devstate";
+import { CLUSTER, DATA_LIVE, LIVE, TX_READY } from "@/lib/config";
+import { WalletButton } from "@/components/Wallet";
 import { Suspense } from "react";
 
-/** Env badge — permanently visible (app prompt §0). Mainnet only at P3 gate. */
+/** Env badge — derives from runtime config; disappears only when truly live. */
 export function EnvBadge() {
+  if (LIVE) return null;
   return (
     <span className="rounded-md border border-signal/40 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.15em] text-signal">
-      Devnet
+      {CLUSTER === "mainnet-beta" ? "Mainnet · pre-launch" : "Devnet"}
     </span>
   );
 }
 
-/** Mandatory pre-launch banner, verbatim per handoff §0. */
+/**
+ * Test-only banner — derives from config, not code: the moment the cluster is
+ * mainnet and the program + API exist (env), this renders nothing and the
+ * build IS the live product. Until then it tells the exact truth about which
+ * pieces are live.
+ */
 export function PrelaunchBanner() {
+  if (LIVE) return null;
+  const missing = [
+    !TX_READY && "program",
+    !DATA_LIVE && "live data",
+    CLUSTER !== "mainnet-beta" && "mainnet",
+  ]
+    .filter(Boolean)
+    .join(" · ");
   return (
     <div className="w-full bg-fail/15 px-4 py-1.5 text-center font-mono text-[11px] tracking-[0.12em] text-fail">
-      PRE-LAUNCH — DEVNET / TEST ONLY. NO DEPOSITS.
+      TEST BUILD — NO REAL DEPOSITS YET. Wallet connect is live; pending: {missing}.
     </div>
   );
 }
@@ -64,7 +80,8 @@ export function Header() {
           <span className="font-display text-lg font-semibold tracking-tight">VaultDrop</span>
           <EnvBadge />
         </div>
-        <span className="font-mono text-xs text-bone/50">7xKX…9fRw</span>
+        {/* Real wallet connection — replaces the WS0 hardcoded chip. */}
+        <WalletButton />
       </div>
       <Suspense>
         <NavInner />
@@ -73,7 +90,7 @@ export function Header() {
   );
 }
 
-/** WS0 dev harness: scenario switcher. Removed at WS1 (real data replaces fixtures). */
+/** Dev harness: scenario switcher — hidden automatically once live data exists. */
 function StateSwitcherInner() {
   const pathname = usePathname();
   const params = useSearchParams();
@@ -101,6 +118,7 @@ function StateSwitcherInner() {
 }
 
 export function StateSwitcher() {
+  if (DATA_LIVE) return null; // real data replaces the harness, automatically
   return (
     <Suspense>
       <StateSwitcherInner />

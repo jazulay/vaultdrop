@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Fraunces, Instrument_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
+import "@solana/wallet-adapter-react-ui/styles.css";
 import { Header, PrelaunchBanner, StateSwitcher } from "@/components/Chrome";
+import { WalletCtx } from "@/components/Wallet";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -35,10 +37,12 @@ export default function RootLayout({
       <body
         className={`${fraunces.variable} ${instrument.variable} ${plexMono.variable} bg-ink font-body text-bone antialiased`}
       >
-        <PrelaunchBanner />
-        <Header />
-        <main className="mx-auto w-full max-w-3xl px-4 pb-32 pt-4">{children}</main>
-        <StateSwitcher />
+        <WalletCtx>
+          <PrelaunchBanner />
+          <Header />
+          <main className="mx-auto w-full max-w-3xl px-4 pb-32 pt-4">{children}</main>
+          <StateSwitcher />
+        </WalletCtx>
       </body>
     </html>
   );

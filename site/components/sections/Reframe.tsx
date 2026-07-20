@@ -1,20 +1,45 @@
 "use client";
 
 import VideoLoop from "@/components/VideoLoop";
+import { PARAMS } from "@/lib/calc";
+import { useSolPrice, fmtUsd } from "@/lib/price";
 
 /**
  * REFRAME (audit §6.2, new) — names the enemy: yield you can't feel.
  * Sits directly after the hero, filling the former dead scroll zone (P0-3 ③).
+ *
+ * Pass 5 §3.5: the headline is RECONCILED with the live price — it derives
+ * from the same PARAMS × Pyth feed as the panel beneath it, so the page can
+ * never contradict itself about its own most important argument. Feed down →
+ * the no-dollar phrasing (never a stale figure).
  */
+
+/** The worked example the section speaks in — the calculator's default. */
+const EXAMPLE_SOL = 25;
+
 export default function Reframe() {
+  const price = useSolPrice();
+  const apyPct = (PARAMS.stakingApy * 100).toFixed(0);
+  const dailySol = (EXAMPLE_SOL * PARAMS.stakingApy) / 365;
+  const dailyUsd = price.usd !== null ? dailySol * price.usd : null;
+
   return (
-    <section className="relative bg-ink py-24 sm:py-32">
+    /* Pass 6 #7: shorter top padding — the hero's chapter card hands off to
+       this section's eyebrow, so the gap must read as one beat, not a trench. */
+    <section className="relative bg-ink pb-24 pt-14 sm:pb-32 sm:pt-20">
       <div className="mx-auto max-w-6xl px-6">
         <div className="font-mono text-[11px] uppercase tracking-[0.3em] text-bone/60">
-          The problem with 8%
+          The problem with {apyPct}%
         </div>
         <h2 className="mt-4 max-w-3xl font-display text-4xl font-semibold leading-tight tracking-tight sm:text-6xl">
-          Staking pays you about a dollar a day. Feel anything?
+          {dailyUsd !== null ? (
+            <>
+              Staking {EXAMPLE_SOL} SOL pays you about {fmtUsd(dailyUsd)} a day.
+              Feel anything?
+            </>
+          ) : (
+            <>Staking pays you cents a day. Feel anything?</>
+          )}
         </h2>
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-bone/75">
           Seven percent a year is good math and terrible television. VaultDrop
@@ -42,8 +67,11 @@ export default function Reframe() {
               <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-bone/55">
                 Staking
               </div>
-              <div className="font-mono text-lg text-bone/60">
-                +0.0038 SOL · every day · forever
+              <div className="font-mono text-lg text-bone/60 tabular-nums">
+                {EXAMPLE_SOL} SOL → +
+                {dailySol.toLocaleString("en-US", { maximumFractionDigits: 4 })} SOL
+                {dailyUsd !== null && <> ({fmtUsd(dailyUsd)})</>}{" "}
+                · every day · forever
               </div>
               <div className="text-sm italic text-bone/55">certain. silent.</div>
             </figcaption>

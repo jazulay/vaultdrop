@@ -1,9 +1,10 @@
-# Keep railway up uploads small: only site/ source + public assets are needed
-# (service root directory is /site). Evidence docs and raw generations stay in git.
+# Keep railway up uploads small: two services deploy from this repo —
+# `site` (root directory /site) and `app` (root directory /app, day-one pivot
+# 2026-07-20). Evidence docs and raw generations stay in git only.
 # Patterns are anchored (leading /) where an unanchored form would also match
 # inside site/ — e.g. plain "app/" would exclude site/app and break the build.
 node_modules/
 .next/
 /assets/
 /site/docs/
-/app/
+/app/docs/

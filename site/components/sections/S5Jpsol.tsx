@@ -23,13 +23,11 @@ export default function S5Jpsol() {
             invariant: sum(jpSOL supply × rate) ≤ vault assets · deposits mint at rate ·
             withdrawals burn at rate · yield never mints shares
           </p>
-          <a
-            href="#"
-            data-stub="docs-link"
-            className="link-quiet mt-6 inline-block text-sm text-bone/70"
-          >
-            Read the docs ↗
-          </a>
+          {/* Pass 6 #8: never a dead link where a proof should be — the anchor
+              returns the moment a real docs URL exists (STUBS.md #4). */}
+          <p className="mt-6 font-mono text-xs text-bone/50">
+            Docs — published before deposits open.
+          </p>
         </div>
       </div>
     </section>

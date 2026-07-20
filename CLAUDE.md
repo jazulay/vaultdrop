@@ -31,13 +31,18 @@ VaultDrop: non-custodial prize-linked savings on Solana. "Never lose. Sometimes 
 - **Evidence artifacts required per work package** — see `site/docs/` for the
   pattern (captures at 390/768/1440, reduced-motion audit, claims audit).
 
-## Status (updated 2026-07-17, after pass 4)
+## Status (updated 2026-07-17, after pass 5)
 
-- `site/` — live on Railway through **4 audit passes**. Pass 3 built the hero
+- `site/` — live on Railway through **5 audit passes**. Pass 3 built the hero
   **demo draw** (30s cycle at true odds, `lib/draw.ts` + `components/DemoDraw.tsx`);
   pass 4 amplified it (stage bar, one demo ledger in `lib/demoLedger.ts`,
-  four-layer resolve, 6s year-sim) and fixed 6 play-test bugs. See
-  `HANDOFF.md` and `site/docs/PASS{3,4}_RESPONSE.md`.
+  four-layer resolve, 6s year-sim); pass 5 rebuilt the orbs on an owned
+  **Draw Ring** (`lib/ring.ts`, CI-asserted text-safe geometry, time-weighted
+  YOU orb), shipped the live-dollar **Two Futures** calculator (Pyth via
+  `lib/price.ts`; dollars hide on feed failure), locked the settled
+  EV-down-by-exactly-the-fee frame in `scripts/calc.test.mjs`, and closed
+  both outstanding Higgsfield assets. See `HANDOFF.md` and
+  `site/docs/PASS{3,4,5}_RESPONSE.md`.
 - `app/` — WS0 design pass done via `lib/devstate.ts` `?state=` fixture harness.
   **WS2+ blocked on Hermes IDLs / devnet API — see `BLOCKER.md`.**
 - Deploy: `cd site && railway up --detach --service site` (root `.railwayignore`

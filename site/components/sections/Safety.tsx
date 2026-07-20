@@ -21,7 +21,7 @@ export default function Safety() {
                 <span className="text-bone">Your principal funding prizes.</span>{" "}
                 The program can only move yield into the prize escrow — deposits
                 are structurally out of its reach. The invariant is one line of
-                math, published in the docs.
+                math, published with the docs before deposits open.
               </li>
               <li>
                 <span className="text-bone">Being locked in.</span> jpSOL
@@ -38,8 +38,9 @@ export default function Safety() {
             <ul className="mt-4 space-y-4 text-sm leading-relaxed text-bone/75">
               <li>
                 <span className="text-bone">Smart-contract bugs.</span> The
-                programs are open source; audit status will be published on this
-                page before deposits open.
+                program source and its audit status are published on this page
+                before deposits open — if they aren&apos;t here yet, deposits
+                aren&apos;t open yet.
               </li>
               <li>
                 <span className="text-bone">JitoSOL exposure.</span> Deposits
@@ -59,6 +60,24 @@ export default function Safety() {
               </li>
             </ul>
           </div>
+        </div>
+
+        {/* Pass 6 #8: the six scattered "published before launch" promises,
+            gathered into one dated commitment. Mirrored on /legal. */}
+        <div className="mt-8 rounded-2xl border border-bone/15 bg-ink/50 p-6">
+          <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-bone/50">
+            Before deposits open, this page will show
+          </div>
+          <p className="mt-3 text-sm leading-relaxed text-bone/70">
+            Program addresses and source · audit status and report · upgrade
+            authority and its multisig · the docs, including the deposit-safety
+            invariant · final parameters · official draw rules and withdrawal
+            mechanics.{" "}
+            <a href="/legal" className="link-quiet text-bone/80">
+              The full checklist lives on the Legal page
+            </a>{" "}
+            — until every item is filled in, deposits stay closed.
+          </p>
         </div>
       </div>
     </section>

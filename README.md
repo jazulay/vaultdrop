@@ -16,8 +16,9 @@ cd site && npm install && npm run dev
 - `NEXT_PUBLIC_API_BASE` — Hermes API base URL. Unset → verbatim pre-launch states.
 - `NEXT_PUBLIC_LAUNCHED` — `1` flips every CTA to "Deposit" and live scoreboard (audit P0-2 gate).
 - `NEXT_PUBLIC_EPOCH1_UTC` — epoch-1 open, UTC ISO (e.g. `2026-08-02T18:00:00Z`). Drives all pre-launch countdowns; unset → seeding chip, no countdown.
-- `NEXT_PUBLIC_WAITLIST_URL` — POST target for waitlist emails. Unset → honest "not connected" state.
+- `NEXT_PUBLIC_APP_URL` — the vault app's URL (day-one pivot: every CTA routes there; defaults to the deployed `app` service domain). App-service envs live in BLOCKER.md: `NEXT_PUBLIC_CLUSTER`, `NEXT_PUBLIC_RPC_URL`, `NEXT_PUBLIC_API_BASE`, `NEXT_PUBLIC_VAULT_PROGRAM_ID`.
 - `NEXT_PUBLIC_SITE_ORIGIN` — production origin for `metadataBase`/`rel=canonical` (audit pass 2 NF-4). Unset → `http://localhost:3311` so local builds stay auditable.
+- `NEXT_PUBLIC_COUNSEL_STRIP` — `approved` shows the calculator's Powerball comparison strip (pass 5 §3.4). **Set only on explicit written counsel sign-off**; unset → strip absent (STUBS #17).
 
 `npm run build` runs the placeholder CI guard (`scripts/check-stubs.mjs`);
 `npm test` checks the calculator against the audit's worked example.
