@@ -128,7 +128,7 @@ function DepositInner() {
             You receive <Mono className="text-bone">{receives}</Mono> jpSOL — a SOL-value share,
             redeemable anytime.
           </p>
-          <p>All yield funds prizes: 70% weekly draws · 15% Mega Vault · 15% protocol.</p>
+          <p>Yield routes 70% to weekly draws · 15% to the Mega Vault · 15% protocol fee.</p>
           <p>Your principal cannot fund prizes — the program can only move yield.</p>
         </div>
         <div className="mt-2 font-mono text-[11px] text-bone/45">

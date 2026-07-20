@@ -29,7 +29,7 @@ import {
   winChime,
   megaBoom,
 } from "@/lib/sound";
-import { calc } from "@/lib/calc";
+import { calc, PARAMS } from "@/lib/calc";
 import {
   computeRingGeom,
   intersects,
@@ -428,7 +428,7 @@ interface Crown {
   pop: boolean;
 }
 
-/** §2.7: 20 crowns bloom around the CORE — the vault paying out, never the sample. */
+/** §2.7: the winners' crowns bloom around the CORE — the vault paying out, never the sample. */
 function makeCrowns(count: number, g: RingGeom): Crown[] {
   return Array.from({ length: count }, (_, i) => {
     const angle = (i / count) * Math.PI * 2 + rejectionInt(60) / 60;
@@ -581,7 +581,7 @@ export function DemoDrawStage() {
   useEffect(() => {
     if (s.phase === "resolve") {
       const g = geomRef.current;
-      if (g) setCrowns(makeCrowns(s.outcome?.winners ?? 20, g));
+      if (g) setCrowns(makeCrowns(s.outcome?.winners ?? PARAMS.winnersPerDraw, g));
       crownShimmer(8);
       const t = window.setTimeout(() => setSlam(true), 1200);
       const t2 = window.setTimeout(() => setSlam(false), 2200);
@@ -921,7 +921,7 @@ export function DemoDrawStage() {
                   className="crown-bloom absolute -translate-x-1/2 whitespace-nowrap font-mono text-[12px] tracking-[0.08em] text-gold/90"
                   style={{ top: geom.b * 0.62, animationDelay: "500ms" }}
                 >
-                  {s.outcome?.winners ?? 20} winners · {fmt(s.outcome?.personalPrize ?? 0)} SOL each
+                  {s.outcome?.winners ?? PARAMS.winnersPerDraw} winners · {fmt(s.outcome?.poolSol ?? 0, 0)} SOL paid out
                 </div>
               </div>
             )}
@@ -1129,7 +1129,7 @@ export function DemoDrawStage() {
               value={s.phase === "resolve" || s.phase === "settle" ? 0 : s.poolSol}
               durationMs={600}
             />{" "}
-            SOL · {s.outcome?.winners ?? 20} winners
+            SOL · {s.outcome?.winners ?? PARAMS.winnersPerDraw} winners
           </div>
 
           <div className={`stage-dim font-mono text-[14px] text-gold ${slam ? "mega-slam" : ""}`}>
@@ -1154,7 +1154,7 @@ export function DemoDrawStage() {
                 <span className="text-gold">YOU WON {fmt(s.personal.prize)} SOL (demo)</span>
               ) : (
                 <span className="text-bone/85">
-                  Not this one — 20 crowns landed elsewhere. Your odds carry into
+                  Not this one — the crowns landed elsewhere. Your odds carry into
                   the next draw.
                 </span>
               )

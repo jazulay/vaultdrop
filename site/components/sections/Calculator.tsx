@@ -333,7 +333,11 @@ export default function Calculator() {
                 }
               />
               <Row label="Most weeks" sol={0} gold />
-              <Row label="A winning week pays" sol={r.avgPrize} gold />
+              <Row label="A winning week pays on average" sol={r.avgPrize} gold />
+              <p className="pb-1.5 pt-1 text-[11px] leading-snug text-bone/55">
+                prizes tier per draw: 1 wins 50% of the pool · 5 win 5% · 25 win
+                1% (locked protocol split)
+              </p>
               {/* Pass 6 #5: the Mega row names its reference class — the VAULT
                   lands 1-in-26; your share of that landing is stated, never
                   implied. It must not read as personal odds of the jackpot. */}
@@ -447,7 +451,7 @@ export default function Calculator() {
                 <span className="text-bone">
                   {fmtUsd(feeWeekly * usd)} a week is the whole price of the game.
                 </span>{" "}
-                It buys 52 weekly shots (1 in {oneInN.toLocaleString("en-US")}) at{" "}
+                It buys 52 weekly shots (1 in {oneInN.toLocaleString("en-US")}) at an average{" "}
                 {fmtUsd(inUsd(r.avgPrize)!)}, and your 1-in-
                 {Math.round(tvl / deposit).toLocaleString("en-US")} share of the ~2
                 Mega landings a year at {fmtUsd(inUsd(r.megaAvgAtHit)!)}. Your{" "}
@@ -459,7 +463,7 @@ export default function Calculator() {
                 <span className="text-bone">
                   {fmtSol(feeWeekly, 4)} SOL a week is the whole price of the game.
                 </span>{" "}
-                It buys 52 weekly shots (1 in {oneInN.toLocaleString("en-US")}) at{" "}
+                It buys 52 weekly shots (1 in {oneInN.toLocaleString("en-US")}) at an average{" "}
                 {fmtSol(r.avgPrize)} SOL, and your 1-in-
                 {Math.round(tvl / deposit).toLocaleString("en-US")} share of the ~2
                 Mega landings a year at {fmtSol(r.megaAvgAtHit, 0)} SOL. Your{" "}

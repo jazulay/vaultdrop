@@ -7,12 +7,24 @@
  * "illustrative" until then.
  */
 
+/**
+ * ALIGNED TO THE LOCKED PROTOCOL SPEC (2026-07-20): Hermes handoff v1.2
+ * locks the gross yield split at 70% weekly / 15% Mega / 15% protocol fee,
+ * weekly prize tiers 1×50% + 5×5% + 25×1% of the pool (= 31 winners,
+ * slots 0..=30), Mega 1-in-26 (conditional slot 31). Only stakingApy remains
+ * illustrative (live Jito feed at launch). Frozen until Hermes P4 review.
+ */
 export const PARAMS = {
-  stakingApy: 0.07, // PLACEHOLDER — CONFIRM WITH PROGRAM (later: live Jito APY feed)
-  protocolFee: 0.1, // PLACEHOLDER — CONFIRM WITH PROGRAM
-  megaShare: 0.3, // PLACEHOLDER — CONFIRM WITH PROGRAM
-  winnersPerDraw: 20, // PLACEHOLDER — CONFIRM WITH PROGRAM
-  megaOddsPerWeek: 1 / 26, // from live copy — confirm
+  stakingApy: 0.07, // ILLUSTRATIVE — live Jito APY feed at launch
+  protocolFee: 0.15, // LOCKED — 15% of gross yield
+  megaShare: 0.15 / 0.85, // LOCKED — 15% of gross = this share of net (70/15/15)
+  winnersPerDraw: 31, // LOCKED — 1×50% + 5×5% + 25×1% tiers
+  prizeTiers: [
+    { count: 1, poolShare: 0.5 },
+    { count: 5, poolShare: 0.05 },
+    { count: 25, poolShare: 0.01 },
+  ],
+  megaOddsPerWeek: 1 / 26, // LOCKED
   tvlScenarios: [25_000, 100_000, 500_000], // SOL — chips pre-launch; live TVL post-launch
 } as const;
 

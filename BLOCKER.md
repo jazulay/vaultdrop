@@ -1,8 +1,8 @@
 # BLOCKER.md — the launch-gating list
 
 > Full artifact shapes + endpoint contract:
-> `VAULTDROP_FRONTEND_INTEGRATION_HANDOFF_v1_0.md` (repo root; delivered to
-> `~/.hermes/work/vaultdrop/docs/` 2026-07-20, SHA-256 `e5683057…d1ad4a0`).
+> `VAULTDROP_FRONTEND_INTEGRATION_HANDOFF_v1_1.md` (repo root; delivered to
+> `~/.hermes/work/vaultdrop/docs/` 2026-07-20, superseding v1.0).
 
 **Day-one pivot (2026-07-20, Joseph): there is no waitlist. The full
 experience — gameplay, deposits, wallet signing — must be live from day one.**

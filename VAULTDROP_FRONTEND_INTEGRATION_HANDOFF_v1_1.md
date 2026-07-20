@@ -1,7 +1,9 @@
-# VAULTDROP — FRONTEND INTEGRATION HANDOFF v1.0 (Fable → Hermes)
+# VAULTDROP — FRONTEND INTEGRATION HANDOFF v1.1 (Fable → Hermes)
 
 - **From:** Fable (frontend owner: `site/` + `app/` in `github.com/jazulay/vaultdrop`)
-- **Date:** 2026-07-20
+- **Date:** 2026-07-20 (v1.1 same day: §5 PARAMS conflict RESOLVED — frontends
+  aligned to the locked v1.2 economics; §1 claim contract pinned to spec v1.3
+  §9 `claim_prize(slot, leaf, merkle_sum_proof)`)
 - **Context:** Joseph's day-one directive: *"there is no waitlist. the site is
   live and ready from day one … full gameplay, full deposit, wallet signing
   etc."* The frontend half is deployed and transaction-ready; this document is
@@ -43,11 +45,16 @@ explorer receipt, and the full error-state UI — already works. Alongside the
 IDL, please state per instruction: required accounts/PDAs and how the client
 derives them, and unit conventions (lamports vs SOL-value; jpSOL decimals).
 
-Given CR-002's claim design (Merkle-sum proof per payout slot, weekly slots
-0..=30, conditional Mega slot 31): **claims presumably need proof data the
-client cannot derive.** See `/wallet/:addr/prizes` below — please return the
-claim payload there, and specify what `buildClaimIx` actually takes (we will
-reshape the signature to match your contract; `prizeId: string` is a stand-in).
+Claims are pinned to your own spec v1.3 §9: the instruction is
+`claim_prize(slot, leaf, merkle_sum_proof)`. The frontend treats the claim
+payload as **opaque pass-through**: `/wallet/:addr/prizes` returns, per
+claimable prize, the exact `slot`, the exact `leaf` bytes, the exact
+`merkle_sum_proof`, and the `draw_state` pubkey (the client derives the
+`ClaimReceipt` PDA from `(draw_state, slot)` per v1.3 §7). The client encodes
+them into the instruction verbatim, verifies the program id, simulates first,
+and signs. Serialize `leaf` and proof nodes as base64 in the JSON; nothing
+else is interpreted client-side. This closes the claim contract — no frontend
+decision remains.
 
 ## 2. Artifact 2 — Program IDs
 
@@ -71,8 +78,11 @@ GET /caps      → { wallet_cap_sol }
 GET /wallet/:addr/position
                → { balance_sol, balance_jito, twab_share, wallet_cap_used_sol }
 GET /wallet/:addr/prizes
-               → [{ id, tier, amount_sol, expires, mega?,
-                    claim: <your Merkle/slot payload — specify> }]
+               → [{ id: "<epoch>:<slot>", epoch, slot, tier, amount_sol,
+                    amount_lamports, expires_utc, mega?,
+                    claim: { draw_state: <pubkey>,
+                             leaf: <base64, exact claim_prize leaf bytes>,
+                             merkle_sum_proof: [<base64 node>, …] } }]
 GET /draws     → [{ epoch, pool_sol, winners_count, vrf_proof_url, settle_tx_url }]
 GET /time      → { now_utc }                    // API_REQUESTS #1, for countdowns
 ```
@@ -85,19 +95,16 @@ list above is what renders today.
 `NEXT_PUBLIC_RPC_URL` on the `app` service (public RPC will not survive
 launch traffic; the client falls back to `clusterApiUrl` otherwise).
 
-## 5. Artifact 5 — PARAMS confirmation (site + app currently disagree)
+## 5. PARAMS — RESOLVED (v1.1): frontends aligned to your locked economics
 
-Both frontends carry placeholder economics pending your confirmed values:
-
-- `site/lib/calc.ts` `PARAMS`: APY 7%, **fee 10%**, **megaShare 30% of net**
-  (⇒ gross split ≈ 63% weekly / 27% Mega / 10% fee), 20 winners/draw, 1-in-26.
-- `app/` deposit review copy: **"70% weekly draws · 15% Mega Vault · 15%
-  protocol."**
-- CR-002 non-effects list "yield split, prize tiers … weekly cadence, Mega
-  probability" as locked on your side — please state the locked numbers
-  (including winners/draw vs the 31-slot design) and we align BOTH frontends
-  to a single constant set within hours. Every figure on the site derives from
-  `PARAMS` by construction; nothing else needs touching.
+No action needed. As of 2026-07-20 both frontends derive from the v1.2-locked
+values: gross split **70% weekly / 15% Mega / 15% protocol fee**
+(`YIELD_SPLIT_*`), tiers **1×50% + 5×5% + 25×1%** of the pool (= 31 winners,
+slots 0..=30), **Mega 1-in-26** (conditional slot 31), 90-day claims from
+settlement. `site/lib/calc.ts` `PARAMS` is the single frontend constant set;
+the demo draw and year-sim now tier-sample prizes at true slot odds. Staking
+APY remains illustrative at 7% until the live Jito feed. If P4 review changes
+any locked value, changing `PARAMS` propagates everywhere.
 
 ## 6. Non-artifact notes
 

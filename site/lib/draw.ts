@@ -69,16 +69,34 @@ export interface DrawOutcome {
 }
 
 /**
+ * Sample which prize tier a winning slot pays (locked tiers: 1×50% + 5×5% +
+ * 25×1% of the pool). Uniform over the 31 slots, true to the with-replacement
+ * slot design — a demo win pays a REAL tier amount, never a smoothed average.
+ */
+export function samplePrizeShare(): number {
+  const slot = rejectionInt(PARAMS.winnersPerDraw);
+  let acc = 0;
+  for (const t of PARAMS.prizeTiers) {
+    acc += t.count;
+    if (slot < acc) return t.poolShare;
+  }
+  return PARAMS.prizeTiers[PARAMS.prizeTiers.length - 1].poolShare;
+}
+
+/**
  * Resolve one demo draw. `depositSol` is the visitor's demo orb (null = spectating).
  * Personal win is a single Bernoulli at the calculator's pWeek — exactly the
- * true odds, nothing else.
+ * true odds — and a winning draw samples its tier at true slot odds.
  */
 export function drawOnce(depositSol: number | null, tvlSol: number = DEMO_VAULT_SOL): DrawOutcome {
   const base = calc(depositSol ?? 1, tvlSol);
   const personal = depositSol !== null ? calc(depositSol, tvlSol) : null;
+  const personalWin = personal ? randFloat() < personal.pWeek : null;
   return {
-    personalWin: personal ? randFloat() < personal.pWeek : null,
-    personalPrize: base.avgPrize,
+    personalWin,
+    personalPrize: personalWin
+      ? base.weeklyPool * samplePrizeShare()
+      : base.avgPrize,
     megaHit: oneIn(Math.round(1 / PARAMS.megaOddsPerWeek)),
     poolSol: base.weeklyPool,
     winners: PARAMS.winnersPerDraw,
@@ -141,15 +159,16 @@ export function simulateYear(depositSol: number, tvlSol: number): YearResult {
     // On a vault-level mega hit, the winner is integral-weighted: your chance
     // is exactly your share. True odds — a hit here is a real jackpot moment.
     const personalMega = megaHit && randFloat() < r.share;
+    const prize = win ? r.weeklyPool * samplePrizeShare() : r.avgPrize;
     if (win) {
       wins++;
-      totalSol += r.avgPrize;
+      totalSol += prize;
     }
     if (personalMega) {
       personalMegaWin = true;
       totalSol += megaPot;
     }
-    cells.push({ week, win, prize: r.avgPrize, megaHit, personalMega, megaPotAtHit: megaPot });
+    cells.push({ week, win, prize, megaHit, personalMega, megaPotAtHit: megaPot });
     if (megaHit) {
       megaHits++;
       megaPot = 0;
