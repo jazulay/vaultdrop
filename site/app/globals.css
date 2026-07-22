@@ -182,29 +182,72 @@ summary:focus-visible {
   transform: scale(1.03); /* hide the blurred edge fringe */
 }
 
-/* §2.1 the Draw Ring: 2px brass-gold stroke, brighter along the front arc,
-   soft outer glow. Orbs pass BEHIND the stroke on the back arc (z-2 < z-4)
-   and IN FRONT on the front arc (z-6 > z-4). */
+/* Pass 7 A1 — the Draw Ring becomes furniture, not wire: a brass BAND with a
+   gradient stroke lit from the core, a blurred underglow beneath the front
+   arc, and a hairline inner track. Orbs still pass BEHIND the stroke on the
+   back arc (z-2 < z-4) and IN FRONT on the front arc (z-6 > z-4). */
 .ring-back {
   fill: none;
-  stroke: rgba(201, 162, 39, 0.32);
-  stroke-width: 2;
-  transition: stroke 0.6s;
+  stroke: url(#vd-brass-back);
+  stroke-width: 3;
+  transition: opacity 0.6s;
 }
 .ring-front {
   fill: none;
-  stroke: rgba(201, 162, 39, 0.85);
-  stroke-width: 2;
-  filter: drop-shadow(0 0 6px rgba(201, 162, 39, 0.45));
-  transition: stroke 0.6s, filter 0.6s;
+  stroke: url(#vd-brass-front);
+  stroke-width: 5;
+  stroke-linecap: round;
+  transition: opacity 0.6s;
 }
-/* §2.7 CHARGE: the ring stroke brightens */
+.ring-glow {
+  fill: none;
+  stroke: rgba(201, 162, 39, 0.35);
+  stroke-width: 14;
+  stroke-linecap: round;
+  filter: blur(7px);
+  transition: opacity 0.6s;
+}
+.ring-track {
+  fill: none;
+  stroke: rgba(239, 233, 218, 0.14);
+  stroke-width: 1;
+}
+/* §2.7 CHARGE: the whole band heats up */
 .ring-charging .ring-front {
-  stroke: rgba(232, 197, 71, 1);
-  filter: drop-shadow(0 0 12px rgba(201, 162, 39, 0.8));
+  stroke-width: 6;
 }
-.ring-charging .ring-back {
-  stroke: rgba(201, 162, 39, 0.5);
+.ring-charging .ring-glow {
+  stroke: rgba(232, 197, 71, 0.6);
+  filter: blur(9px);
+}
+
+/* Pass 7 A2 — tier plates: the vault paying out, staged as light + receipts
+   instead of confetti glyphs. Amounts derive from PARAMS tiers × pool. */
+.tier-plate {
+  animation: plate-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  pointer-events: none;
+}
+@keyframes plate-in {
+  from { opacity: 0; transform: translate(-50%, -30%) scale(0.7); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+.tier-plate-lg {
+  border: 1px solid rgba(201, 162, 39, 0.65);
+  background: rgba(11, 31, 36, 0.85);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 0 24px rgba(201, 162, 39, 0.35);
+}
+.tier-plate-md {
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  background: rgba(11, 31, 36, 0.75);
+  backdrop-filter: blur(4px);
+}
+.tier-burst {
+  position: absolute;
+  border: 1.5px solid rgba(201, 162, 39, 0.8);
+  border-radius: 50%;
+  animation: crown-burst 0.5s ease-out both;
+  pointer-events: none;
 }
 
 .demo-orb {

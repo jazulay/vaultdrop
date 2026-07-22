@@ -204,7 +204,7 @@ export default function HeroOrrery() {
             ref={copyRef}
             className="relative z-10 mx-auto flex h-full max-w-6xl flex-col items-start justify-end px-6 pb-[calc(var(--stage-h,180px)+20px)] sm:justify-center sm:pb-32"
           >
-            <h1 className="font-display text-[13vw] font-semibold leading-[0.95] tracking-tight sm:text-7xl lg:text-8xl xl:text-[7.5rem]">
+            <h1 className="font-display text-[11vw] font-semibold leading-[0.95] tracking-tight sm:text-7xl lg:text-8xl xl:text-[7.5rem]">
               Never lose.
               <br />
               <span className="text-gold">Sometimes win big.</span>
@@ -216,15 +216,16 @@ export default function HeroOrrery() {
 
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <DemoDrawCta />
+              {/* A4: three objects on phones — headline, clock, one CTA */}
               <a
                 href="#how"
-                className="press-ripple press-scale rounded-full border border-bone/25 px-8 py-3.5 font-medium text-bone transition hover:border-bone/60"
+                className="press-ripple press-scale hidden rounded-full border border-bone/25 px-8 py-3.5 font-medium text-bone transition hover:border-bone/60 sm:inline-block"
               >
                 How it works
               </a>
             </div>
 
-            <p className="mt-5 font-mono text-[11px] tracking-[0.08em] text-bone/55">
+            <p className="mt-5 hidden font-mono text-[11px] tracking-[0.08em] text-bone/55 sm:block">
               No lockups · Principal never plays · Draws provable on-chain
             </p>
 

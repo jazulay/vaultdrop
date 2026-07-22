@@ -417,9 +417,11 @@ interface Orb {
   size: number;
 }
 
-// §2.3: 16 desktop / 10 mobile; a few 40px whales, mostly 16–24px.
-const ORB_SIZES_DESKTOP = [40, 40, 24, 24, 22, 22, 20, 20, 18, 18, 16, 16, 24, 20, 18, 16];
-const ORB_SIZES_MOBILE = [40, 24, 22, 20, 20, 18, 18, 16, 16, 20];
+// Pass 7 A2: orbs worth betting on — 26–56px glass (three tiers of whale),
+// nothing smaller than 26. The old 16–24px field read as compression noise
+// against the cinematic set.
+const ORB_SIZES_DESKTOP = [56, 48, 40, 40, 36, 36, 32, 32, 30, 30, 28, 28, 36, 32, 28, 26];
+const ORB_SIZES_MOBILE = [48, 38, 34, 32, 30, 28, 28, 26, 26, 30];
 
 function makeOrbs(sizes: number[]): Orb[] {
   return sizes.map((size, i) => ({
@@ -433,21 +435,52 @@ interface Crown {
   dx: number;
   dy: number;
   delay: number;
-  pop: boolean;
+  /** Pass 7 A2 — payouts staged as receipts, not confetti: one large plate
+   *  (the 50% tier), the 5%-tier plates, and light bursts for the 1% tier. */
+  kind: "lg" | "md" | "sm";
+  amountSol: number;
 }
 
-/** §2.7: the winners' crowns bloom around the CORE — the vault paying out, never the sample. */
-function makeCrowns(count: number, g: RingGeom): Crown[] {
-  return Array.from({ length: count }, (_, i) => {
-    const angle = (i / count) * Math.PI * 2 + rejectionInt(60) / 60;
-    const r = 0.3 + rejectionInt(55) / 100;
-    return {
-      dx: Math.cos(angle) * g.a * 0.55 * r,
-      dy: Math.sin(angle) * g.b * 0.85 * r,
-      delay: i * 45,
-      pop: i < 4,
-    };
-  });
+/** §2.7: the payout blooms around the CORE — the vault paying, never the sample. */
+function makeCrowns(poolSol: number, g: RingGeom): Crown[] {
+  const crowns: Crown[] = [];
+  let i = 0;
+  for (const tier of PARAMS.prizeTiers) {
+    // lg/md tiers render one plate each; the long 1% tail renders as a
+    // constellation of bursts (visual shorthand — the receipt line below the
+    // bloom still states the full winner count).
+    const kind: Crown["kind"] =
+      tier.poolShare >= 0.25 ? "lg" : tier.poolShare >= 0.03 ? "md" : "sm";
+    const renderCount = kind === "sm" ? Math.min(10, tier.count) : tier.count;
+    for (let k = 0; k < renderCount; k++) {
+      if (kind === "lg") {
+        crowns.push({ dx: 0, dy: -g.b * 0.3, delay: 120, kind, amountSol: poolSol * tier.poolShare });
+      } else if (kind === "md") {
+        // Fixed fan across the upper hemisphere — plates may not collide with
+        // each other or the receipt line at the bloom's south edge.
+        const angle = Math.PI * (1.12 + 0.19 * k) + rejectionInt(12) / 100;
+        crowns.push({
+          dx: Math.cos(angle) * g.a * 0.42,
+          dy: Math.sin(angle) * g.b * 0.55 - g.b * 0.05,
+          delay: 260 + k * 70,
+          kind,
+          amountSol: poolSol * tier.poolShare,
+        });
+      } else {
+        const angle = (i / 16) * Math.PI * 2 + rejectionInt(60) / 60;
+        const r = 0.35 + rejectionInt(55) / 100;
+        crowns.push({
+          dx: Math.cos(angle) * g.a * 0.55 * r,
+          dy: Math.min(Math.sin(angle) * g.b * 0.85 * r, g.b * 0.42),
+          delay: 320 + i * 55,
+          kind,
+          amountSol: poolSol * tier.poolShare,
+        });
+      }
+      i++;
+    }
+  }
+  return crowns;
 }
 
 interface StageBox {
@@ -459,6 +492,7 @@ export function DemoDrawStage() {
   const s = useDemoDraw();
   const led = useDemoLedger();
   const soundOn = useSound();
+  const poolFallback = s.poolSol;
   const stageRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
   const orbRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -472,6 +506,9 @@ export function DemoDrawStage() {
   const speedMulRef = useRef(1);
   const [slam, setSlam] = useState(false);
   const [crowns, setCrowns] = useState<Crown[]>([]);
+  // Pass 7 A4: on phones the chip row hides behind one "Play" affordance —
+  // the first viewport belongs to the story, not the controls.
+  const [chipsOpen, setChipsOpen] = useState(false);
   const [joinRipple, setJoinRipple] = useState<{ x: number; y: number; seq: number } | null>(null);
   const [exitGhost, setExitGhost] = useState<{ x: number; y: number; size: number } | null>(null);
   const youEntryRef = useRef<{ fromX: number; fromY: number; start: number } | null>(null);
@@ -589,7 +626,7 @@ export function DemoDrawStage() {
   useEffect(() => {
     if (s.phase === "resolve") {
       const g = geomRef.current;
-      if (g) setCrowns(makeCrowns(s.outcome?.winners ?? PARAMS.winnersPerDraw, g));
+      if (g) setCrowns(makeCrowns(s.outcome?.poolSol ?? poolFallback, g));
       crownShimmer(8);
       const t = window.setTimeout(() => setSlam(true), 1200);
       const t2 = window.setTimeout(() => setSlam(false), 2200);
@@ -770,9 +807,33 @@ export function DemoDrawStage() {
               s.winPlate ? "stage-desat" : ""
             }`}
           >
+            {/* Pass 7 A1: brass material — lit from the core, dark at the rims */}
+            <defs>
+              <linearGradient id="vd-brass-front" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="rgba(138,109,31,0.55)" />
+                <stop offset="35%" stopColor="rgba(230,198,90,0.95)" />
+                <stop offset="50%" stopColor="rgba(246,224,148,1)" />
+                <stop offset="65%" stopColor="rgba(230,198,90,0.95)" />
+                <stop offset="100%" stopColor="rgba(138,109,31,0.55)" />
+              </linearGradient>
+              <linearGradient id="vd-brass-back" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="rgba(138,109,31,0.2)" />
+                <stop offset="50%" stopColor="rgba(201,162,39,0.45)" />
+                <stop offset="100%" stopColor="rgba(138,109,31,0.2)" />
+              </linearGradient>
+            </defs>
             <path
               className="ring-back"
               d={`M ${geom.cx - geom.a} ${geom.cy} A ${geom.a} ${geom.b} 0 0 1 ${geom.cx + geom.a} ${geom.cy}`}
+            />
+            {/* hairline inner track gives the band physical thickness */}
+            <path
+              className="ring-track"
+              d={`M ${geom.cx - geom.a} ${geom.cy + 4} A ${geom.a} ${Math.max(10, geom.b - 7)} 0 0 0 ${geom.cx + geom.a} ${geom.cy + 4}`}
+            />
+            <path
+              className="ring-glow"
+              d={`M ${geom.cx - geom.a} ${geom.cy} A ${geom.a} ${geom.b} 0 0 0 ${geom.cx + geom.a} ${geom.cy}`}
             />
             <path
               className="ring-front"
@@ -900,31 +961,32 @@ export function DemoDrawStage() {
               />
             )}
 
-            {/* §2.7 the vault's win, every cycle: crowns bloom around the CORE
-                in a constellation — never on the sampled orbs. */}
+            {/* §2.7 + A2: the vault pays out around the CORE — one large
+                receipt (the 50% tier), the 5% plates, a constellation of
+                bursts for the 1% tail. Amounts are PARAMS tiers × pool. */}
             {geom && crowns.length > 0 && (s.phase === "resolve" || s.phase === "settle") && (
               <div className="absolute z-[8]" style={{ left: geom.cx, top: geom.cy }}>
-                {crowns.map((c, i) => (
-                  <span
-                    key={`${s.resultSeq}-${i}`}
-                    className="crown-bloom absolute"
-                    style={{ left: c.dx, top: c.dy, animationDelay: `${c.delay}ms` }}
-                  >
-                    <span className="crown-burst" />
-                    <svg
-                      viewBox="0 0 12 8"
-                      className="h-4 w-6 -translate-x-1/2 -translate-y-1/2 text-gold"
-                      fill="currentColor"
+                {crowns.map((c, i) =>
+                  c.kind === "sm" ? (
+                    <span
+                      key={`${s.resultSeq}-${i}`}
+                      className="tier-burst h-10 w-10 -translate-x-1/2 -translate-y-1/2"
+                      style={{ left: c.dx, top: c.dy, animationDelay: `${c.delay}ms` }}
+                    />
+                  ) : (
+                    <span
+                      key={`${s.resultSeq}-${i}`}
+                      className={`tier-plate absolute whitespace-nowrap rounded-lg font-mono text-gold ${
+                        c.kind === "lg"
+                          ? "tier-plate-lg px-4 py-2 text-[20px] font-semibold sm:text-[24px]"
+                          : "tier-plate-md px-2.5 py-1 text-[13px]"
+                      }`}
+                      style={{ left: c.dx, top: c.dy, animationDelay: `${c.delay}ms` }}
                     >
-                      <path d="M0 8 L1.5 2 L4 5 L6 0 L8 5 L10.5 2 L12 8 Z" />
-                    </svg>
-                    {c.pop && (
-                      <span className="demo-pop absolute -top-7 left-0 -translate-x-1/2 font-mono text-[16px] font-medium text-gold">
-                        +{fmt(s.outcome?.personalPrize ?? 0)}
-                      </span>
-                    )}
-                  </span>
-                ))}
+                      +{fmt(c.amountSol, c.amountSol < 10 ? 1 : 0)} SOL
+                    </span>
+                  ),
+                )}
                 <div
                   className="crown-bloom absolute -translate-x-1/2 whitespace-nowrap font-mono text-[12px] tracking-[0.08em] text-gold/90"
                   style={{ top: geom.b * 0.62, animationDelay: "500ms" }}
@@ -1040,43 +1102,10 @@ export function DemoDrawStage() {
           s.docked ? "pointer-events-none opacity-0" : "opacity-100"
         } ${s.phase === "charge" ? "stage-bar-charging" : ""}`}
       >
-        {/* Pass 6 #1: on phones the badge is the bar's own first row — it may
-            never sit on top of a CTA. Floating chip stays on sm+. */}
-        <span className="absolute -top-7 right-4 hidden rounded-md border border-bone/30 bg-ink/70 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-bone/80 backdrop-blur-sm sm:block sm:right-8">
-          Simulation · real odds · demo SOL
-        </span>
-        {/* Pass 6 sound pill — the ritual, scored; OFF by default (STUBS #15) */}
-        <button
-          onClick={() => {
-            setSound(!soundOn);
-            track("sound_toggled", { on: !soundOn });
-          }}
-          aria-pressed={soundOn}
-          className={`absolute -top-7 left-4 hidden rounded-md border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.15em] backdrop-blur-sm transition sm:left-8 sm:block ${
-            soundOn
-              ? "border-gold/60 bg-ink/70 text-gold"
-              : "border-bone/30 bg-ink/70 text-bone/60 hover:text-bone/90"
-          }`}
-        >
-          sound {soundOn ? "on" : "off"}
-        </button>
-
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-8 gap-y-2 px-4 py-3 sm:px-8 sm:py-4">
-          <span className="flex w-full items-center justify-between font-mono text-[9px] uppercase tracking-[0.15em] text-bone/60 sm:hidden">
-            Simulation · real odds · demo SOL
-            <button
-              onClick={() => {
-                setSound(!soundOn);
-                track("sound_toggled", { on: !soundOn });
-              }}
-              aria-pressed={soundOn}
-              className={`rounded-md border px-2 py-0.5 ${
-                soundOn ? "border-gold/60 text-gold" : "border-bone/30 text-bone/60"
-              }`}
-            >
-              sound {soundOn ? "on" : "off"}
-            </button>
-          </span>
+        {/* Pass 7 A3 — de-barnacled: the SIMULATION badge and the sound pill
+            live INSIDE the bar (its bottom line), not floating above it. The
+            corners of the stage belong to the scene. */}
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2 sm:gap-x-8 sm:gap-y-2 sm:px-8 sm:py-4">
           {/* the clock — the page's second read (§3.1). Pass 6 #20: it speaks
               through the whole ritual instead of freezing at 0:00. */}
           <div className="stage-clock">
@@ -1127,8 +1156,10 @@ export function DemoDrawStage() {
             )}
           </div>
 
-          {/* §2.7 pool drains at the hit and re-seeds on the next orbit */}
-          <div className="stage-dim font-mono text-[14px] text-bone/70">
+          {/* §2.7 pool drains at the hit and re-seeds on the next orbit.
+              A4: hidden on phones — the receipt line carries the pool there,
+              and the first viewport belongs to the story. */}
+          <div className="stage-dim hidden font-mono text-[14px] text-bone/70 sm:block">
             <span className="block text-[10px] uppercase tracking-[0.2em] text-bone/50">
               demo pool
             </span>
@@ -1140,9 +1171,12 @@ export function DemoDrawStage() {
             SOL · {s.outcome?.winners ?? PARAMS.winnersPerDraw} winners
           </div>
 
-          <div className={`stage-dim font-mono text-[14px] text-gold ${slam ? "mega-slam" : ""}`}>
-            <span className="block text-[10px] uppercase tracking-[0.2em] text-gold/60">
+          <div className={`stage-dim font-mono text-[13px] text-gold sm:text-[14px] ${slam ? "mega-slam" : ""}`}>
+            <span className="hidden text-[10px] uppercase tracking-[0.2em] text-gold/60 sm:block">
               mega (demo) · 1-in-26 — grows every miss
+            </span>
+            <span className="mr-1 text-[10px] uppercase tracking-[0.15em] text-gold/60 sm:hidden">
+              mega
             </span>
             {fmt(led.pot, 0)} SOL
             {slam && !s.outcome?.megaHit && (
@@ -1153,8 +1187,8 @@ export function DemoDrawStage() {
           {/* §3.5 personal slot — reserved space, zero CLS (B1); §2.6 the odds
               line is honest about time-weight while it accrues; pass 6 #21
               names the bets-closed beat. */}
-          <div className="stage-dim min-h-[2.5rem] font-mono text-[14px] sm:min-w-[13rem]">
-            <span className="block text-[10px] uppercase tracking-[0.2em] text-bone/50">
+          <div className="stage-dim w-full font-mono text-[12px] sm:min-h-[2.5rem] sm:w-auto sm:min-w-[13rem] sm:text-[14px]">
+            <span className="hidden text-[10px] uppercase tracking-[0.2em] text-bone/50 sm:block">
               {s.deposit === null ? "watching" : "your demo orb"}
             </span>
             {s.personal ? (
@@ -1197,7 +1231,19 @@ export function DemoDrawStage() {
           {/* chips dock into the bar (§3.1); selected = gold (B6); tap arcs
               your orb in from the chip's real position (§2.4); each states its
               per-draw odds (pass 6 #20) */}
-          <div className={`ml-auto flex flex-wrap items-center gap-2 ${nudge ? "chip-nudge" : ""}`}>
+          {!chipsOpen && s.deposit === null && (
+            <button
+              onClick={() => setChipsOpen(true)}
+              className="press-ripple ml-auto min-h-[44px] rounded-full border border-gold/50 px-5 font-mono text-sm text-gold transition sm:hidden"
+            >
+              Play the demo ▸
+            </button>
+          )}
+          <div
+            className={`ml-auto flex-wrap items-center gap-2 ${nudge ? "chip-nudge" : ""} ${
+              chipsOpen || s.deposit !== null ? "flex" : "hidden sm:flex"
+            }`}
+          >
             {AMOUNT_CHIPS.map((a) => (
               <button
                 key={a}
@@ -1229,25 +1275,44 @@ export function DemoDrawStage() {
           </div>
         </div>
 
-        {/* session tally — height reserved from first paint (B1). Pass 6
-            big-swing: the demo world remembers — a return visit is greeted
-            with what its pot really did while they were gone. */}
-        <div className="mx-auto h-6 max-w-7xl px-4 pb-2 font-mono text-[10px] text-bone/55 sm:px-8">
-          {s.sessionDraws > 0 || s.sessionMegaGrowth > 0 ? (
-            <>
-              {s.sessionDraws > 0 &&
-                `${s.sessionDraws} demo draw${s.sessionDraws === 1 ? "" : "s"} played · `}
-              Mega grew +{fmt(s.sessionMegaGrowth, 0)} SOL while you watched
-            </>
-          ) : away ? (
-            <>
-              while you were away: {away.draws.toLocaleString("en-US")} demo draw
-              {away.draws === 1 ? "" : "s"}
-              {away.hits > 0
-                ? ` · the Mega hit ${away.hits}× and is rebuilding`
-                : ` · Mega grew +${fmt(away.grown, 0)} SOL`}
-            </>
-          ) : null}
+        {/* Bottom line: SIMULATION badge · session tally · sound. One row,
+            height reserved from first paint (B1); the world-remembers greeting
+            (pass 6 big-swing) shares the center slot. */}
+        <div className="mx-auto flex h-6 max-w-7xl items-center justify-between gap-3 px-4 pb-2 font-mono text-[10px] sm:px-8">
+          <span className="shrink-0 uppercase tracking-[0.15em] text-bone/50">
+            Simulation · real odds · demo SOL
+          </span>
+          <span className="min-w-0 truncate text-bone/55">
+            {s.sessionDraws > 0 || s.sessionMegaGrowth > 0 ? (
+              <>
+                {s.sessionDraws > 0 &&
+                  `${s.sessionDraws} demo draw${s.sessionDraws === 1 ? "" : "s"} played · `}
+                Mega grew +{fmt(s.sessionMegaGrowth, 0)} SOL while you watched
+              </>
+            ) : away ? (
+              <>
+                while you were away: {away.draws.toLocaleString("en-US")} demo draw
+                {away.draws === 1 ? "" : "s"}
+                {away.hits > 0
+                  ? ` · the Mega hit ${away.hits}× and is rebuilding`
+                  : ` · Mega grew +${fmt(away.grown, 0)} SOL`}
+              </>
+            ) : null}
+          </span>
+          <button
+            onClick={() => {
+              setSound(!soundOn);
+              track("sound_toggled", { on: !soundOn });
+            }}
+            aria-pressed={soundOn}
+            className={`shrink-0 rounded-md border px-2 py-0.5 uppercase tracking-[0.15em] transition ${
+              soundOn
+                ? "border-gold/60 text-gold"
+                : "border-bone/30 text-bone/60 hover:text-bone/90"
+            }`}
+          >
+            sound {soundOn ? "on" : "off"}
+          </button>
         </div>
       </div>
 
