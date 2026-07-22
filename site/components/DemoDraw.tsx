@@ -99,6 +99,7 @@ interface DemoDrawState {
   winPlate: boolean;
   reduced: boolean;
   active: boolean;
+  running: boolean;
   docked: boolean;
   poolSol: number;
   join: (amount: number) => void;
@@ -165,9 +166,14 @@ export function DemoDrawProvider({
   const personalTimerRef = useRef(0);
   const plateTimerRef = useRef(0);
 
-  const active = !reduced && !docked && inView && !hidden;
-  const activeRef = useRef(active);
-  activeRef.current = active;
+  // Pass 7 C4: the game must never show a dead clock. `running` keeps the
+  // scheduler + countdown alive whenever ANY live surface is on screen (the
+  // hero stage OR the follow strip after docking); `active` additionally
+  // gates the orb rAF, which only matters while the hero itself is visible.
+  const running = !reduced && !hidden && (inView || docked);
+  const active = running && inView && !docked;
+  const runningRef = useRef(running);
+  runningRef.current = running;
 
   const poolSol = useMemo(() => calc(1, DEMO_VAULT_SOL).weeklyPool, []);
 
@@ -260,7 +266,7 @@ export function DemoDrawProvider({
         : `Demo draw resolved: ${o.winners} winners from a ${fmt(o.poolSol, 0)} SOL demo pool. Mega grew ${fmt(o.megaGrowth)} to ${fmt(led.pot, 0)}.${personalTxt}`,
     );
     setResultLine(
-      `demo epoch ${led.epoch} · ${fmt(o.poolSol)} SOL · ${o.winners} winners · odds honored ✓`,
+      `practice draw №${led.drawNo.toLocaleString("en-US")} · ${fmt(o.poolSol)} SOL · ${o.winners} winners · fair draw verified ✓`,
     );
     setResultSeq((n) => n + 1);
   }, [applyPersonal, getHeldFraction]);
@@ -288,7 +294,7 @@ export function DemoDrawProvider({
       timer = window.setTimeout(advance, remainingRef.current);
     };
 
-    if (activeRef.current) {
+    if (runningRef.current) {
       phaseStartedAt = performance.now();
       timer = window.setTimeout(advance, remainingRef.current);
     }
@@ -302,11 +308,12 @@ export function DemoDrawProvider({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, reduced, resolveDraw]);
+  }, [running, reduced, resolveDraw]);
 
-  // Countdown ticker to the end of CHARGE (the lock moment).
+  // Countdown ticker to the end of CHARGE (the lock moment). Runs for every
+  // live surface, including the follow strip (C4 — no frozen clocks, ever).
   useEffect(() => {
-    if (!active) return;
+    if (!running) return;
     let last = performance.now();
     let rem = remainingRef.current;
     const remainingElapsed = () => {
@@ -323,7 +330,7 @@ export function DemoDrawProvider({
     tick();
     const id = window.setInterval(tick, 250);
     return () => window.clearInterval(id);
-  }, [active, phase]);
+  }, [running, phase]);
 
   const join = useCallback((amount: number) => {
     if (depositRef.current === null) joinedAtRef.current = performance.now();
@@ -386,6 +393,7 @@ export function DemoDrawProvider({
     winPlate,
     reduced,
     active,
+    running,
     docked,
     poolSol,
     join,
@@ -791,7 +799,7 @@ export function DemoDrawStage() {
                   : { left: geom.cx + geom.a * 0.62, top: geom.cy - geom.b * 0.72 }
             }
           >
-            showing {orbs.length} of ~{depositorCount.toLocaleString("en-US")} demo depositors
+            you&apos;re seeing {orbs.length} of ~{depositorCount.toLocaleString("en-US")} demo savers
           </div>
         )}
 
@@ -1147,7 +1155,7 @@ export function DemoDrawStage() {
               names the bets-closed beat. */}
           <div className="stage-dim min-h-[2.5rem] font-mono text-[14px] sm:min-w-[13rem]">
             <span className="block text-[10px] uppercase tracking-[0.2em] text-bone/50">
-              {s.deposit === null ? "spectating" : "your demo orb"}
+              {s.deposit === null ? "watching" : "your demo orb"}
             </span>
             {s.personal ? (
               s.personal.kind === "win" ? (
@@ -1180,9 +1188,9 @@ export function DemoDrawStage() {
                 </span>
               )
             ) : nudge ? (
-              <span className="text-signal">your turn — drop a demo orb for the next draw</span>
+              <span className="text-signal">your turn — drop your orb in for the next draw</span>
             ) : (
-              <span className="text-bone/60">drop an orb in to ride the next draw</span>
+              <span className="text-bone/60">drop your orb in — your stake on the table</span>
             )}
           </div>
 
@@ -1294,19 +1302,97 @@ export function DemoDrawCta() {
   );
 }
 
-/* PiP content (B5): the live demo clock + pot, replacing static text. */
-export function DemoDrawPipInfo() {
+/**
+ * Pass 7 C4 — THE FOLLOW STRIP. Replaces the PiP thumbnail (whose clock froze
+ * at 0:00 the moment the provider paused — a dead clock advertising a live
+ * game) and the GSAP shrink-to-corner (a second, redundant hero residue).
+ * The stage bar's essence detaches and follows as one slim live line: clock,
+ * pot, your status, act. Fed by the same provider, which keeps running while
+ * this is visible (`running`), so it can never freeze.
+ */
+export function DemoDrawStrip({ visible }: { visible: boolean }) {
   const s = useDemoDraw();
   const led = useDemoLedger();
   const secs = Math.ceil(s.countdownMs / 1000);
+  const countdownText = `0:${String(Math.max(0, secs)).padStart(2, "0")}`;
+
   return (
-    <>
-      <div className="text-[10px] uppercase tracking-[0.2em] text-gold/90">
-        Mega (demo) · {fmt(led.pot, 0)} SOL
+    <div
+      aria-hidden={!visible}
+      className={`fixed inset-x-0 bottom-0 z-40 border-t border-bone/15 bg-ink/85 backdrop-blur-md transition-transform duration-300 ${
+        visible ? "translate-y-0" : "pointer-events-none translate-y-full"
+      }`}
+    >
+      <div className="mx-auto flex max-w-7xl items-center gap-x-4 px-4 py-2 sm:gap-x-8 sm:px-8">
+        <span className="hidden rounded-md border border-bone/25 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-bone/60 md:block">
+          demo · real odds
+        </span>
+
+        {/* the live clock — never frozen (C4) */}
+        {s.reduced ? (
+          <button
+            onClick={s.runStaticDraw}
+            className="press-ripple rounded-full border border-gold/50 px-4 py-1 font-mono text-xs text-gold transition hover:bg-gold hover:text-ink"
+          >
+            Run one draw
+          </button>
+        ) : (
+          <span
+            role="timer"
+            aria-label={
+              s.phase === "resolve"
+                ? "Demo draw resolving"
+                : s.phase === "settle"
+                  ? "Demo draw paid"
+                  : `Demo draw in ${countdownText}`
+            }
+            className="font-mono text-lg leading-none tabular-nums sm:text-xl"
+          >
+            <span className="mr-2 text-[9px] uppercase tracking-[0.2em] text-bone/50 align-middle">
+              draw
+            </span>
+            {s.phase === "resolve" ? (
+              <span className="clock-pulse text-gold">LIVE</span>
+            ) : s.phase === "settle" ? (
+              <span className="text-signal">PAID ✓</span>
+            ) : (
+              <span className={s.phase === "charge" ? "clock-pulse text-gold" : "text-bone"}>
+                {countdownText}
+              </span>
+            )}
+          </span>
+        )}
+
+        <span className="font-mono text-xs text-gold sm:text-sm">
+          <span className="mr-1.5 hidden text-[9px] uppercase tracking-[0.2em] text-gold/60 sm:inline">
+            mega
+          </span>
+          {fmt(led.pot, 0)} SOL
+        </span>
+
+        {/* your status — the personal beat follows you down the page */}
+        <span className="hidden min-w-0 flex-1 truncate font-mono text-xs text-bone/70 md:block">
+          {s.personal ? (
+            s.personal.kind === "win" ? (
+              <span className="text-gold">YOU WON {fmt(s.personal.prize)} SOL (demo)</span>
+            ) : (
+              "not this one — your odds carry"
+            )
+          ) : s.deposit !== null ? (
+            <span className="text-signal">your orb is on the table</span>
+          ) : (
+            "the demo table is still running"
+          )}
+        </span>
+
+        <a
+          href={APP_URL}
+          onClick={() => track("cta_click", { cta: "strip", post_participation: s.participatedResolved })}
+          className="press-ripple ml-auto shrink-0 rounded-full bg-gold px-4 py-1.5 font-mono text-xs font-medium text-ink transition hover:brightness-110 sm:px-5 sm:text-sm"
+        >
+          Open the vault →
+        </a>
       </div>
-      <div className="mt-0.5 font-mono text-xs text-bone tabular-nums">
-        {s.reduced ? "demo draws on the hero" : `draw in 0:${String(Math.max(0, secs)).padStart(2, "0")}`}
-      </div>
-    </>
+    </div>
   );
 }

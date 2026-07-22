@@ -6,7 +6,11 @@ import { join } from "node:path";
 const ROOTS = [".next/server/app", ".next/server/pages"];
 const PATTERN = /\[(COUNSEL|STUB|TODO|TBD|REPLACE)/i;
 // Audit §11 copy sweep + pass-3 §8 lexicon ban pending counsel.
-const BANNED_TERMS = /\b(guaranteed|risk-free|beat staking|lottery|sweepstakes|raffle)\b/i;
+// Pass 7 C1/C3 regression traps: the numeric literal below was a hardcoded
+// pool figure that contradicted PARAMS (two-truths defect); the two retired
+// phrases are operator dialect — their reappearance means a stale surface.
+const BANNED_TERMS =
+  /\b(guaranteed|risk-free|beat staking|lottery|sweepstakes|raffle|odds honored|demo epoch)\b|118\.4/i;
 // Pass 3 §8: client-only surfaces (demo-draw HUD, tallies, year-sim) render
 // after hydration and never appear in emitted HTML — sweep their sources too.
 const SOURCE_ROOTS = ["components", "lib"];

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useStats } from "@/lib/api";
-import { APP_URL, LAUNCHED, EPOCH1_UTC } from "@/lib/launch";
+import { APP_URL, LAUNCHED, EPOCH1_UTC, NOW } from "@/lib/launch";
 import { nextSunday18UTC } from "@/lib/format";
 import { rejectionInt } from "@/lib/draw";
 import { initLedger, useDemoLedger } from "@/lib/demoLedger";
@@ -184,8 +184,10 @@ export default function S3Mega() {
       <div className="mega-inner relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-24">
         <div className="flex items-center gap-3">
           <span className="text-xs uppercase tracking-[0.35em] text-gold">The Mega Vault</span>
+          {/* Pass 7 C2: one truth about NOW — this chip may not contradict the
+              hero's "Open the vault" (lib/launch NOW map). */}
           <span className="rounded-md border border-gold/40 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.15em] text-gold/90">
-            {LAUNCHED ? "Live" : "Seeding · epoch 1 soon"}
+            {NOW.megaChip}
           </span>
         </div>
 
@@ -228,19 +230,19 @@ export default function S3Mega() {
 
         <div className="mt-12 flex flex-wrap items-center gap-4">
           <span className="text-[11px] uppercase tracking-[0.25em] text-bone/50">
-            {LAUNCHED ? "Next draw · Sunday 18:00 UTC" : "Epoch 1 opens"}
+            {NOW.megaCtaLabel}
           </span>
           {countdownTarget ? (
             <Countdown targetUtc={countdownTarget} fallback="" className="text-lg text-bone" />
           ) : (
-            /* Pass 6 #15: the page's best hook, at its emotional peak, was
-               inert text — now it's the ask it always wanted to be. */
+            /* Pass 6 #15 + pass 7 C2: the ask, told in the same tense as the
+               hero — the app is open NOW; the real pot arms at epoch 1. */
             <a
               href={APP_URL}
               className="link-quiet text-lg text-bone"
               onClick={() => track("cta_click", { cta: "mega" })}
             >
-              be in orbit when it opens — enter the vault →
+              {NOW.megaCtaLink}
             </a>
           )}
         </div>

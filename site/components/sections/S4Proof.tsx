@@ -3,7 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import { useDraws, PRELAUNCH, UNAVAILABLE_TOOLTIP } from "@/lib/api";
 import { formatSol } from "@/lib/format";
+import { calc, PARAMS } from "@/lib/calc";
+import { DEMO_VAULT_SOL } from "@/lib/draw";
 import Odometer from "@/components/Odometer";
+
+// Pass 7 C1: the preview row derives from PARAMS like every other figure on
+// the page — a hardcoded pool/winner count here is a two-truths defect (this
+// row once contradicted the locked 31-winner economics; check-stubs now traps
+// the old literals).
+const PREVIEW_POOL = calc(1, DEMO_VAULT_SOL).weeklyPool.toFixed(1);
+const PREVIEW_WINNERS = String(PARAMS.winnersPerDraw);
 
 /**
  * S4 — PROOF. Ledger fed by /draws. Pre-launch: verbatim empty state PLUS one
@@ -103,12 +112,20 @@ export default function S4Proof() {
                       </span>
                       12
                     </td>
-                    <td className="px-3 py-4 text-right sm:px-5">
-                      {settled ? <Odometer value="118.4" /> : <span className="opacity-0">118.4</span>}{" "}
+                    <td className="px-3 py-4 text-right sm:px-5" data-preview-source="params">
+                      {settled ? (
+                        <Odometer value={PREVIEW_POOL} />
+                      ) : (
+                        <span className="opacity-0">{PREVIEW_POOL}</span>
+                      )}{" "}
                       SOL
                     </td>
                     <td className="px-3 py-4 text-right sm:px-5">
-                      {settled ? <Odometer value="20" /> : <span className="opacity-0">20</span>}
+                      {settled ? (
+                        <Odometer value={PREVIEW_WINNERS} />
+                      ) : (
+                        <span className="opacity-0">{PREVIEW_WINNERS}</span>
+                      )}
                     </td>
                     {/* Placeholder cells, not links — real draws link to the
                         real artifacts (pass 6 #12). */}

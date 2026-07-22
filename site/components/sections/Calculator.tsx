@@ -233,7 +233,7 @@ export default function Calculator() {
               }`}
             >
               {s.toLocaleString("en-US")} SOL
-              {i === 0 && <span className="ml-1.5 text-[10px] opacity-70">epoch-1 scale</span>}
+              {i === 0 && <span className="ml-1.5 text-[10px] opacity-70">launch-day size</span>}
             </button>
           ))}
         </div>
@@ -244,7 +244,7 @@ export default function Calculator() {
         </p>
         {tvl === PARAMS.tvlScenarios[0] && (
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-bone/60">
-            Right now the vault is empty. At epoch-1 scale your{" "}
+            Right now the vault is empty. At launch-day size your{" "}
             {fmtSol(deposit, 1)} SOL is a big fish in a small pond — a shot
             roughly every {oneInN.toLocaleString("en-US")} Sundays instead of
             every {Math.round(atDefaultTvl.oneInN).toLocaleString("en-US")} once

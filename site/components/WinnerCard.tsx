@@ -22,7 +22,7 @@ export interface WinnerCardProps {
   oddsOneInN?: number | null;
   /** Demo cards are always labeled; real cards require a proof link. */
   demo: boolean;
-  /** e.g. "demo epoch −41" today, "epoch 3 · draw of 2026-08-02" at launch. */
+  /** e.g. "practice draw №4,301" today, "epoch 3 · draw of 2026-08-02" at launch. */
   epochLabel?: string;
   /** On-chain proof URL — real wins only, supplied by the API, never invented. */
   proofHref?: string;

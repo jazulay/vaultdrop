@@ -5,8 +5,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useStats } from "@/lib/api";
 import { PARAMS } from "@/lib/calc";
-import { track } from "@/lib/analytics";
-import { APP_URL, LAUNCHED, EPOCH1_UTC } from "@/lib/launch";
+import { LAUNCHED, EPOCH1_UTC } from "@/lib/launch";
 import { formatSol, nextSunday18UTC } from "@/lib/format";
 import Countdown from "@/components/Countdown";
 import Odometer from "@/components/Odometer";
@@ -14,7 +13,7 @@ import {
   DemoDrawProvider,
   DemoDrawStage,
   DemoDrawCta,
-  DemoDrawPipInfo,
+  DemoDrawStrip,
 } from "@/components/DemoDraw";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -32,7 +31,6 @@ export default function HeroOrrery() {
   const copyRef = useRef<HTMLDivElement>(null);
   const chapterRef = useRef<HTMLDivElement>(null);
   const [docked, setDocked] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
   const [footerVisible, setFooterVisible] = useState(false);
   const [reduced, setReduced] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
@@ -68,10 +66,6 @@ export default function HeroOrrery() {
     if (!section || !frame) return;
 
     const ctx = gsap.context(() => {
-      const hudW = 200;
-      const hudH = 120;
-      const pad = 24;
-
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: section,
@@ -82,7 +76,7 @@ export default function HeroOrrery() {
             if (videoRef.current) {
               videoRef.current.playbackRate = Math.max(0.25, 1 - st.progress * 0.75);
             }
-            setDocked(st.progress > 0.98);
+            setDocked(st.progress > 0.9);
           },
         },
       });
@@ -91,19 +85,15 @@ export default function HeroOrrery() {
       // not 0), and the released slab is no longer dead — a chapter card
       // ("The problem with 7%") rises exactly where the next section's
       // headline will land, turning the void into a match cut.
+      //
+      // Pass 7 C4: the shrink-to-corner thumbnail is gone (it duplicated the
+      // PiP, which is also gone — the follow strip is the one hero residue).
+      // The set now departs by receding: dim + slight push-in, then release.
       tl.to(copyRef.current, { opacity: 0, y: -40, duration: 0.3, ease: "none" }, 0.45);
       tl.to(
         frame,
-        {
-          width: () => hudW,
-          height: () => hudH,
-          top: () => window.innerHeight - hudH - pad,
-          left: () => window.innerWidth - hudW - pad,
-          borderRadius: 12,
-          duration: 0.75,
-          ease: "none",
-        },
-        0.25,
+        { opacity: 0.25, scale: 1.06, filter: "blur(2px)", duration: 0.6, ease: "none" },
+        0.3,
       );
       tl.fromTo(
         chapterRef.current,
@@ -137,11 +127,7 @@ export default function HeroOrrery() {
         ? nextSunday18UTC(new Date()).toISOString()
         : EPOCH1_UTC;
 
-  const scrollToMega = () => {
-    document.getElementById("mega")?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const pipVisible = docked && !dismissed && !footerVisible;
+  const stripVisible = docked && !footerVisible;
 
   return (
     <DemoDrawProvider docked={docked}>
@@ -288,70 +274,10 @@ export default function HeroOrrery() {
         </div>
       </section>
 
-      {/* PiP v2 — "Orbit ticker" (audit §7.3): one live line, dismissible,
-          hides at footer and below 768px, click scrolls to the Mega Vault. */}
-      <div
-        aria-hidden={!pipVisible}
-        className={`fixed bottom-6 right-6 z-50 hidden w-[200px] overflow-hidden rounded-xl border border-bone/15 transition-opacity duration-300 md:block ${
-          pipVisible ? "opacity-100" : "pointer-events-none opacity-0"
-        }`}
-      >
-        <button
-          onClick={scrollToMega}
-          className="relative block h-[120px] w-full text-left"
-          aria-label="Jump to the Mega Vault section"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/higgsfield/poster/vaultdrop-hero-orrery-loop-sm.jpg"
-            alt=""
-            aria-hidden
-            loading="lazy"
-            width={780}
-            height={436}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-ink/55" />
-          <div className="absolute inset-0 flex flex-col justify-end p-3">
-            {state === "live" && megaValue ? (
-              <>
-                <div className="text-[10px] uppercase tracking-[0.2em] text-gold/90">
-                  Mega Vault
-                </div>
-                <div className="mt-0.5 text-xs text-gold">
-                  <Odometer value={megaValue} />
-                </div>
-              </>
-            ) : nextDraw ? (
-              <>
-                <div className="text-[10px] uppercase tracking-[0.2em] text-gold/90">
-                  {LAUNCHED ? "Next draw" : "Epoch 1"}
-                </div>
-                <Countdown targetUtc={nextDraw} fallback="" className="mt-0.5 text-xs text-bone" />
-              </>
-            ) : (
-              /* B5: the PiP carries the live demo game, not static text */
-              <DemoDrawPipInfo />
-            )}
-          </div>
-        </button>
-        {/* Pass 6 #15: the PiP carries a join line — mid-page conviction gets
-            an action without hunting for the form. */}
-        <a
-          href={APP_URL}
-          onClick={() => track("cta_click", { cta: "pip" })}
-          className="block border-t border-bone/10 bg-ink/85 px-3 py-1.5 text-center font-mono text-[11px] text-gold hover:bg-ink"
-        >
-          Open the vault →
-        </a>
-        <button
-          onClick={() => setDismissed(true)}
-          aria-label="Dismiss ticker"
-          className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-ink/70 font-mono text-xs text-bone/70 hover:text-bone"
-        >
-          ×
-        </button>
-      </div>
+      {/* Pass 7 C4 — the follow strip: the stage bar's essence detaches and
+          follows the visitor as one slim, always-live line. Replaces the PiP
+          (frozen clock) and the shrink-to-corner thumbnail (redundant). */}
+      <DemoDrawStrip visible={stripVisible} />
     </DemoDrawProvider>
   );
 }

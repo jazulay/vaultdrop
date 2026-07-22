@@ -17,8 +17,12 @@ export interface DemoLedger {
   pot: number;
   /** Consecutive miss-weeks since the last (simulated) hit. */
   missWeeks: number;
-  /** Demo epoch counter (negative pre-launch; never claims a real epoch). */
-  epoch: number;
+  /**
+   * Pass 7 C3: running practice-draw counter, positive and human ("practice
+   * draw №4,301"). Replaces the old negative counter that read as a bug to
+   * first-time visitors. Never claims to be a real epoch.
+   */
+  drawNo: number;
   /** Weekly accrual per miss — the "+36.3" figure, from PARAMS. */
   accrual: number;
   initialized: boolean;
@@ -26,7 +30,7 @@ export interface DemoLedger {
 
 const accrual = megaWeeklyAccrual(DEMO_VAULT_SOL);
 
-let state: DemoLedger = { pot: 0, missWeeks: 0, epoch: -52, accrual, initialized: false };
+let state: DemoLedger = { pot: 0, missWeeks: 0, drawNo: 1, accrual, initialized: false };
 const listeners = new Set<() => void>();
 
 /* Pass 6 big-swing: the demo world REMEMBERS. "It grows until someone takes
@@ -51,7 +55,7 @@ function persist() {
   try {
     localStorage.setItem(
       STORE_KEY,
-      JSON.stringify({ pot: state.pot, missWeeks: state.missWeeks, epoch: state.epoch, savedAt: Date.now() }),
+      JSON.stringify({ pot: state.pot, missWeeks: state.missWeeks, drawNo: state.drawNo, savedAt: Date.now() }),
     );
   } catch {}
 }
@@ -60,10 +64,6 @@ function emit(next: Partial<DemoLedger>) {
   state = { ...state, ...next };
   listeners.forEach((l) => l());
   if (state.initialized) persist();
-}
-
-function advanceEpoch(epoch: number): number {
-  return epoch >= -1 ? -52 : epoch + 1;
 }
 
 /**
@@ -83,7 +83,8 @@ export function initLedger(): void {
       const saved = JSON.parse(raw) as {
         pot: number;
         missWeeks: number;
-        epoch: number;
+        drawNo?: number;
+        epoch?: number; // pre-pass-7 saves
         savedAt: number;
       };
       const elapsed = Math.floor((Date.now() - saved.savedAt) / DRAW_MS);
@@ -93,7 +94,10 @@ export function initLedger(): void {
         elapsed >= 0 &&
         elapsed <= MAX_CATCHUP
       ) {
-        let { pot, missWeeks, epoch } = saved;
+        let { pot, missWeeks } = saved;
+        // Migration: old saves carried a negative epoch; seed the counter from
+        // the world's real age (it has run at least missWeeks draws).
+        let drawNo = saved.drawNo ?? Math.max(1, saved.missWeeks);
         let hits = 0;
         for (let i = 0; i < elapsed; i++) {
           if (oneIn(n)) {
@@ -104,12 +108,12 @@ export function initLedger(): void {
             pot += accrual;
             missWeeks++;
           }
-          epoch = advanceEpoch(epoch);
+          drawNo++;
         }
         if (elapsed > 0) {
           awayReport = { draws: elapsed, grown: Math.max(0, pot - saved.pot), hits };
         }
-        emit({ pot, missWeeks, epoch, initialized: true });
+        emit({ pot, missWeeks, drawNo, initialized: true });
         return;
       }
     }
@@ -118,7 +122,7 @@ export function initLedger(): void {
   let weeks = 0;
   while (weeks < 78 && !oneIn(n)) weeks++;
   weeks = Math.max(weeks, Math.round(n / 2));
-  emit({ pot: weeks * accrual, missWeeks: weeks, initialized: true });
+  emit({ pot: weeks * accrual, missWeeks: weeks, drawNo: weeks, initialized: true });
 }
 
 /** A demo draw missed the Mega: pot accrues one week. */
@@ -126,14 +130,14 @@ export function ledgerMiss(): void {
   emit({
     pot: state.pot + accrual,
     missWeeks: state.missWeeks + 1,
-    epoch: advanceEpoch(state.epoch),
+    drawNo: state.drawNo + 1,
   });
 }
 
 /** The Mega landed: returns the pot that was hit; history restarts. */
 export function ledgerHit(): number {
   const hit = state.pot;
-  emit({ pot: 0, missWeeks: 0, epoch: advanceEpoch(state.epoch) });
+  emit({ pot: 0, missWeeks: 0, drawNo: state.drawNo + 1 });
   return hit;
 }
 
@@ -143,7 +147,7 @@ export function getLedgerState(): DemoLedger {
 }
 
 const getSnapshot = () => state;
-const serverSnapshot: DemoLedger = { pot: 0, missWeeks: 0, epoch: -52, accrual, initialized: false };
+const serverSnapshot: DemoLedger = { pot: 0, missWeeks: 0, drawNo: 1, accrual, initialized: false };
 const getServerSnapshot = () => serverSnapshot;
 const subscribe = (l: () => void) => {
   listeners.add(l);

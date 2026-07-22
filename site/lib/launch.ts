@@ -20,3 +20,23 @@ export const CTA = {
   heroPrimary: LAUNCHED ? "Deposit" : "Open the vault",
   appButton: LAUNCHED ? "Deposit" : "Enter the vault",
 } as const;
+
+/**
+ * Pass 7 C2 — ONE truth about what today is. Every surface that mentions the
+ * present tense reads this map; no section may invent its own version of NOW.
+ * "demo": the vault app is open and real, deposits arm at epoch 1; the demo
+ * table on this page is live. "live": deposits are on.
+ */
+export const LAUNCH_STATE: "demo" | "live" = LAUNCHED ? "live" : "demo";
+
+export const NOW = {
+  /** Mega section status chip. */
+  megaChip: LAUNCHED ? "Live" : "Demo table live · real pot at epoch 1",
+  /** Mega section closing line (label + link text). */
+  megaCtaLabel: LAUNCHED ? "Next draw · Sunday 18:00 UTC" : "Epoch 1 opens soon",
+  megaCtaLink: LAUNCHED ? null : "the vault app is already open — step inside →",
+  /** Final CTA subline. */
+  finalSub: LAUNCHED
+    ? "Deposits are open. Your SOL stays yours — withdraw anytime."
+    : "Epoch 1 is the smallest the vault will ever be — you'll never win more often than at the start. The app is open today; deposits arm at epoch 1.",
+} as const;
