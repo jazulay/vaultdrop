@@ -47,7 +47,7 @@ export default function S4Proof() {
   const hasLive = state === "live" && draws && draws.length > 0;
 
   return (
-    <section id="proof" className="relative bg-ink py-24 sm:py-36">
+    <section id="proof" className="relative bg-ink py-16 sm:py-24">
       <div className="mx-auto max-w-6xl px-6">
         <h2 className="font-display text-4xl font-semibold tracking-tight sm:text-6xl">
           Every draw, provable.

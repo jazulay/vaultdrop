@@ -26,7 +26,7 @@ export default function Reframe() {
   return (
     /* Pass 6 #7: shorter top padding — the hero's chapter card hands off to
        this section's eyebrow, so the gap must read as one beat, not a trench. */
-    <section className="relative bg-ink pb-24 pt-14 sm:pb-32 sm:pt-20">
+    <section className="relative pb-16 pt-12 sm:pb-20 sm:pt-16">
       <div className="mx-auto max-w-6xl px-6">
         <div className="font-mono text-[11px] uppercase tracking-[0.3em] text-bone/60">
           The problem with {apyPct}%

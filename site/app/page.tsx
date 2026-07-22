@@ -1,5 +1,6 @@
 import SmoothScroll from "@/components/SmoothScroll";
 import SiteHeader from "@/components/SiteHeader";
+import WorldLayer from "@/components/WorldLayer";
 import HeroOrrery from "@/components/HeroOrrery";
 import Reframe from "@/components/sections/Reframe";
 import S2How from "@/components/sections/S2How";
@@ -35,6 +36,12 @@ export default function Home() {
         Skip to content
       </a>
       <SmoothScroll />
+
+      {/* Pass 7 B1 — the persistent world: receding brass arcs, ember drift,
+          and the visitor's companion orb, behind every section. Still
+          sections (Proof/Safety/FAQ) keep opaque backgrounds and cover it —
+          the contrast doctrine enforced by paint order. */}
+      <WorldLayer />
 
       {/* Pass 6 #15: header returns on scroll-up (components/SiteHeader). */}
       <SiteHeader />

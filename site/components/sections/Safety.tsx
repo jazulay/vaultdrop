@@ -5,7 +5,7 @@
  */
 export default function Safety() {
   return (
-    <section className="relative bg-ink py-24 sm:py-32">
+    <section className="relative bg-ink py-16 sm:py-24">
       <div className="mx-auto max-w-4xl px-6">
         <h2 className="font-display text-4xl font-semibold tracking-tight sm:text-5xl">
           What can go wrong (and what can&apos;t)

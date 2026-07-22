@@ -165,7 +165,7 @@ export default function Calculator() {
   );
 
   return (
-    <section id="calculator" className="relative border-y border-bone/10 bg-steel/30 py-24 sm:py-32">
+    <section id="calculator" className="relative border-y border-bone/10 bg-steel/30 py-16 sm:py-24">
       <div className="mx-auto max-w-5xl px-6">
         <div className="font-mono text-[11px] uppercase tracking-[0.3em] text-bone/60">
           Your numbers
@@ -259,6 +259,141 @@ export default function Calculator() {
           </p>
         )}
 
+        {/* Pass 7 B3 beat 1 — the decision, first: cost · cadence · ceiling in
+            display type. A 5-second scanner leaves with the thesis before any
+            table asks to be read. */}
+        <div className="mt-10 grid gap-6 rounded-xl border border-bone/10 bg-ink/30 p-6 sm:grid-cols-3">
+          <div>
+            <div className="font-display text-3xl font-semibold tracking-tight text-bone sm:text-4xl">
+              {usd !== null ? `${fmtUsd(feeWeekly * usd)}/wk` : `${fmtSol(feeWeekly, 4)} SOL/wk`}
+            </div>
+            <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-bone/50">
+              the whole cost — the fee, nothing else
+            </div>
+          </div>
+          <div>
+            <div className="font-display text-3xl font-semibold tracking-tight text-bone sm:text-4xl">
+              ≈<CountUp value={r.pYear * 100} decimals={r.pYear >= 0.995 ? 1 : 0} />%
+            </div>
+            <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-bone/50">
+              chance of at least one win this year
+            </div>
+          </div>
+          <div>
+            <div className="font-display text-3xl font-semibold tracking-tight text-gold sm:text-4xl">
+              {usd !== null ? fmtUsd(r.megaAvgAtHit * usd) : `${fmtSol(r.megaAvgAtHit, 0)} SOL`}
+            </div>
+            <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-gold/60">
+              the Mega ceiling · your share ≈1-in-
+              {Math.round(tvl / deposit).toLocaleString("en-US")} when it lands
+            </div>
+          </div>
+        </div>
+
+        {/* Pass 7 B3 beat 2 — the toy takes the stage: the year-sim is the
+            section's centerpiece, directly under the thesis, gold primary. */}
+        <div className="mt-6">
+          <Magnetic>
+            <button
+              onClick={runYear}
+              className="press-ripple press-scale rounded-full bg-gold px-7 py-3 font-medium text-ink transition hover:brightness-110"
+            >
+              {year ? "Run it again" : "Simulate my year"}
+            </button>
+          </Magnetic>
+          {!year && (
+            <span className="ml-4 font-mono text-[11px] text-bone/50">
+              52 Sundays at true odds, in six seconds
+            </span>
+          )}
+
+          {year && (
+            <div className="mt-6" aria-live="polite">
+              <div
+                key={yearRunsRef.current}
+                className="strip-wipe flex flex-wrap items-end gap-1"
+                aria-hidden
+              >
+                {year.cells.map((c, i) => {
+                  const shown = i < revealed;
+                  const winCell = c.win || c.personalMega;
+                  return (
+                    <div
+                      key={`${yearRunsRef.current}-${i}`}
+                      className={`relative flex h-8 w-6 items-center justify-center rounded-md font-mono text-[9px] transition-opacity ${
+                        !shown
+                          ? "opacity-0"
+                          : c.personalMega
+                            ? "year-pop bg-signal text-ink"
+                            : winCell
+                              ? `year-pop year-burst bg-gold text-ink ${
+                                  c.megaHit ? "ring-2 ring-[#d07a27]/80" : ""
+                                }`
+                              : c.megaHit
+                                ? "year-pop border border-[#d07a27]/70 bg-[#d07a27]/25 text-bone/70"
+                                : "year-pop bg-steel/70 text-bone/30"
+                      }`}
+                      title={`week ${c.week}${c.win ? ` — win +${c.prize.toFixed(1)} SOL` : ""}${c.megaHit ? " — vault Mega landed" : ""}${c.personalMega ? " — YOUR Mega win" : ""}`}
+                    >
+                      {shown && (winCell ? `+${c.prize.toFixed(1)}` : c.megaHit ? "M" : "·")}
+                    </div>
+                  );
+                })}
+              </div>
+              {stepMode && (
+                <button
+                  onClick={stepThrough}
+                  className="press-scale mt-3 rounded-full border border-bone/30 px-4 py-1.5 font-mono text-xs text-bone/80 transition hover:border-gold/60"
+                >
+                  Step through week by week ({Math.min(revealed, 52)}/52)
+                </button>
+              )}
+              <p
+                className={`mt-4 font-mono text-sm transition-opacity duration-500 ${
+                  yearDone ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                <span className="text-bone">
+                  Your year: <CountUp value={yearDone ? year.wins : 0} /> win
+                  {year.wins === 1 ? "" : "s"} ·{" "}
+                  <CountUp value={yearDone ? year.totalSol : 0} decimals={1} /> SOL
+                  {usd !== null && yearDone && (
+                    <span className="text-gold"> ({fmtUsd(year.totalSol * usd)})</span>
+                  )}{" "}
+                  · principal untouched: {fmtSol(deposit, 1)} SOL
+                </span>{" "}
+                <span className="text-bone/50">(demo, real odds)</span>
+                {year.megaHits > 0 && (
+                  <span className="block text-bone/60">
+                    The vault&apos;s Mega landed {year.megaHits}× that year
+                    {year.personalMegaWin ? (
+                      <span className="text-signal"> — and one of them was YOURS.</span>
+                    ) : (
+                      " — someone else's week."
+                    )}
+                  </span>
+                )}
+                {yearDone && (
+                  <span className="block text-bone/50">
+                    Staking alone that same year: +{fmtSol(stakingYearly)} SOL
+                    {usd !== null && <> ({fmtUsd(stakingYearly * usd)})</>} — certain, and
+                    capped there.
+                  </span>
+                )}
+              </p>
+              {yearDone && (
+                <a
+                  href={APP_URL}
+                  onClick={() => track("cta_click", { cta: "yearsim" })}
+                  className="press-scale mt-5 inline-block rounded-full border border-gold/50 px-5 py-2 font-mono text-sm text-gold transition hover:bg-gold hover:text-ink"
+                >
+                  Make it real — enter the vault →
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* live price line — dollars appear only while this is true (§3.5) */}
         <div className="mt-10 flex items-baseline justify-between gap-4">
           <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-bone/50">
@@ -332,7 +467,6 @@ export default function Calculator() {
                   </>
                 }
               />
-              <Row label="Most weeks" sol={0} gold />
               <Row label="A winning week pays on average" sol={r.avgPrize} gold />
               <p className="pb-1.5 pt-1 text-[11px] leading-snug text-bone/55">
                 prizes tier per draw: 1 wins 50% of the pool · 5 win 5% · 25 win
@@ -351,6 +485,9 @@ export default function Calculator() {
                 winning it ≈ 1-in-
                 {Math.round(tvl / deposit).toLocaleString("en-US")} at this deposit
               </p>
+              {/* B3: the honest ballast CLOSES the card instead of opening it —
+                  same fact, told after the shot instead of instead of it. */}
+              <Row label="Most weeks" sol={0} gold />
             </div>
             <div className="mt-4 border-t border-gold/20 pt-3">
               {/* Pass 6 #16: bounds, not outcomes — these must never read as
@@ -394,40 +531,18 @@ export default function Calculator() {
           </div>
         </div>
 
-        {/* Pass 6 #17: the decision strip — three numbers in display type, so
-            a 5-second scanner leaves with the actual decision: the cost, the
-            cadence, the ceiling. All derived; the cost stays framed as cost. */}
-        <div className="mt-6 grid gap-6 rounded-xl border border-bone/10 bg-ink/30 p-6 sm:grid-cols-3">
-          <div>
-            <div className="font-display text-3xl font-semibold tracking-tight text-bone sm:text-4xl">
-              {usd !== null ? `${fmtUsd(feeWeekly * usd)}/wk` : `${fmtSol(feeWeekly, 4)} SOL/wk`}
-            </div>
-            <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-bone/50">
-              the whole cost — the fee, nothing else
-            </div>
-          </div>
-          <div>
-            <div className="font-display text-3xl font-semibold tracking-tight text-bone sm:text-4xl">
-              ≈<CountUp value={r.pYear * 100} decimals={r.pYear >= 0.995 ? 1 : 0} />%
-            </div>
-            <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-bone/50">
-              chance of at least one win this year
-            </div>
-          </div>
-          <div>
-            <div className="font-display text-3xl font-semibold tracking-tight text-gold sm:text-4xl">
-              {usd !== null ? fmtUsd(r.megaAvgAtHit * usd) : `${fmtSol(r.megaAvgAtHit, 0)} SOL`}
-            </div>
-            <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-gold/60">
-              the Mega ceiling · your share ≈1-in-
-              {Math.round(tvl / deposit).toLocaleString("en-US")} when it lands
-            </div>
-          </div>
-        </div>
+        {/* Pass 7 B3 beat 3b — the full ledger folds behind one labeled seam
+            for the skeptic. The EV-down statement stays one click away, never
+            hidden in spirit: the summary line itself names the cost. */}
+        <details className="group mt-4">
+          <summary className="cursor-pointer list-none rounded-xl border border-bone/15 bg-ink/50 px-6 py-4 font-mono text-[12px] uppercase tracking-[0.25em] text-bone/70 transition hover:border-bone/30">
+            Show the full math — what it actually costs you{" "}
+            <span className="inline-block transition-transform group-open:rotate-90">▸</span>
+          </summary>
 
         {/* §3.3 the honest ledger — the EV panel. EV is DOWN by exactly the
             fee, stated plainly. Never "up", never "break-even". */}
-        <div className="mt-4 rounded-xl border border-bone/15 bg-ink/50 p-6">
+        <div className="mt-2 rounded-xl border border-bone/15 bg-ink/50 p-6">
           <h3 className="font-mono text-[12px] uppercase tracking-[0.25em] text-bone/55">
             What it actually costs you
           </h3>
@@ -498,109 +613,7 @@ export default function Calculator() {
             </div>
           </div>
         )}
-
-        {/* §5.1 — Simulate my year: the repeatable variable-reward loop */}
-        <div className="mt-10">
-          <Magnetic>
-            <button
-              onClick={runYear}
-              className="press-ripple press-scale rounded-full border border-gold/50 px-6 py-2.5 font-medium text-gold transition hover:bg-gold hover:text-ink"
-            >
-              {year ? "Run it again" : "Simulate my year"}
-            </button>
-          </Magnetic>
-
-          {year && (
-            <div className="mt-8" aria-live="polite">
-              {/* §3.7: 52 Sundays at ≥24×32px — WINs unmistakable at a glance.
-                  §5: each run wipes clean left→right before refilling. */}
-              <div
-                key={yearRunsRef.current}
-                className="strip-wipe flex flex-wrap items-end gap-1"
-                aria-hidden
-              >
-                {year.cells.map((c, i) => {
-                  const shown = i < revealed;
-                  const winCell = c.win || c.personalMega;
-                  return (
-                    <div
-                      key={`${yearRunsRef.current}-${i}`}
-                      className={`relative flex h-8 w-6 items-center justify-center rounded-md font-mono text-[9px] transition-opacity ${
-                        !shown
-                          ? "opacity-0"
-                          : c.personalMega
-                            ? "year-pop bg-signal text-ink"
-                            : winCell
-                              ? `year-pop year-burst bg-gold text-ink ${
-                                  c.megaHit ? "ring-2 ring-[#d07a27]/80" : ""
-                                }`
-                              : c.megaHit
-                                ? "year-pop border border-[#d07a27]/70 bg-[#d07a27]/25 text-bone/70"
-                                : "year-pop bg-steel/70 text-bone/30"
-                      }`}
-                      title={`week ${c.week}${c.win ? ` — win +${c.prize.toFixed(1)} SOL` : ""}${c.megaHit ? " — vault Mega landed" : ""}${c.personalMega ? " — YOUR Mega win" : ""}`}
-                    >
-                      {shown && (winCell ? `+${c.prize.toFixed(1)}` : c.megaHit ? "M" : "·")}
-                    </div>
-                  );
-                })}
-              </div>
-              {stepMode && (
-                <button
-                  onClick={stepThrough}
-                  className="press-scale mt-3 rounded-full border border-bone/30 px-4 py-1.5 font-mono text-xs text-bone/80 transition hover:border-gold/60"
-                >
-                  Step through week by week ({Math.min(revealed, 52)}/52)
-                </button>
-              )}
-              <p
-                className={`mt-4 font-mono text-sm transition-opacity duration-500 ${
-                  yearDone ? "opacity-100" : "opacity-0"
-                }`}
-              >
-                <span className="text-bone">
-                  Your year: <CountUp value={yearDone ? year.wins : 0} /> win
-                  {year.wins === 1 ? "" : "s"} ·{" "}
-                  <CountUp value={yearDone ? year.totalSol : 0} decimals={1} /> SOL
-                  {usd !== null && yearDone && (
-                    <span className="text-gold"> ({fmtUsd(year.totalSol * usd)})</span>
-                  )}{" "}
-                  · principal untouched: {fmtSol(deposit, 1)} SOL
-                </span>{" "}
-                <span className="text-bone/50">(demo, real odds)</span>
-                {year.megaHits > 0 && (
-                  <span className="block text-bone/60">
-                    The vault&apos;s Mega landed {year.megaHits}× that year
-                    {year.personalMegaWin ? (
-                      <span className="text-signal"> — and one of them was YOURS.</span>
-                    ) : (
-                      " — someone else's week."
-                    )}
-                  </span>
-                )}
-                {/* Pass 6 #16: Two Futures shows both futures to the end —
-                    the counterfactual is stated, and it keeps EV-down visible. */}
-                {yearDone && (
-                  <span className="block text-bone/50">
-                    Staking alone that same year: +{fmtSol(stakingYearly)} SOL
-                    {usd !== null && <> ({fmtUsd(stakingYearly * usd)})</>} — certain, and
-                    capped there.
-                  </span>
-                )}
-              </p>
-              {/* Pass 6 #9: peak conviction gets an action within reach. */}
-              {yearDone && (
-                <a
-                  href={APP_URL}
-                  onClick={() => track("cta_click", { cta: "yearsim" })}
-                  className="press-scale mt-5 inline-block rounded-full border border-gold/50 px-5 py-2 font-mono text-sm text-gold transition hover:bg-gold hover:text-ink"
-                >
-                  Make it real — enter the vault →
-                </a>
-              )}
-            </div>
-          )}
-        </div>
+        </details>
 
         <div className="mt-6 flex flex-col gap-2">
           <div className="font-mono text-sm text-signal">

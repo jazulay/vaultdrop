@@ -8,6 +8,7 @@ import { APP_URL, LAUNCHED, EPOCH1_UTC, NOW } from "@/lib/launch";
 import { nextSunday18UTC } from "@/lib/format";
 import { rejectionInt } from "@/lib/draw";
 import { initLedger, useDemoLedger } from "@/lib/demoLedger";
+import { useSolPrice, fmtUsd } from "@/lib/price";
 import { track } from "@/lib/analytics";
 import Odometer from "@/components/Odometer";
 import Countdown from "@/components/Countdown";
@@ -53,9 +54,11 @@ function Embers() {
 }
 
 /**
- * §3.8 + B3 — the rollover strip renders the ACTUAL demo-mega history from
- * lib/demoLedger: last 8 of N misses, running total equal to the hero ticker
- * by construction. One ledger, one story.
+ * §3.8 + B3, rebuilt in pass 7 B4 — the miss history as a FILLING GOLD BAR
+ * (accumulation the eye watches happen) instead of debug W-chips. Still the
+ * one ledger: the bar's segment count is the real miss streak, the total is
+ * the hero ticker by construction, and it keeps filling live as the follow
+ * strip resolves draws.
  */
 function RolloverStrip() {
   const ref = useRef<HTMLDivElement>(null);
@@ -78,47 +81,45 @@ function RolloverStrip() {
     return () => io.disconnect();
   }, []);
 
-  const label = `+${led.accrual.toLocaleString("en-US", { maximumFractionDigits: 1 })}`;
-  const shown = Math.min(8, led.missWeeks);
-  const earlier = led.missWeeks - shown;
-  const cells = Array.from({ length: shown }, (_, i) => led.missWeeks - shown + i + 1);
+  const SEGMENTS = 26; // one expected streak-length of visual room
+  const filled = Math.min(SEGMENTS, led.missWeeks);
+  const overflow = led.missWeeks - filled;
 
   return (
     <div ref={ref} className="mt-10 max-w-2xl">
-      <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
-        {/* Pass 6 #10: cells sit on ink plates so the receipt survives the sun —
-            this line legitimizes the giant number; it must never be illegible. */}
-        {earlier > 0 && (
+      <div className="inline-block rounded-lg bg-ink/70 p-3 backdrop-blur-[2px]">
+        <div className="flex items-center gap-3">
+          <div className="flex h-4 items-stretch gap-[3px]" aria-hidden>
+            {Array.from({ length: SEGMENTS }, (_, i) => (
+              <span
+                key={i}
+                className={`w-2.5 rounded-[3px] ${seen && i < filled ? "strip-cell" : ""}`}
+                style={{
+                  animationDelay: seen ? `${i * 55}ms` : undefined,
+                  background:
+                    i < filled
+                      ? `rgba(201,162,39,${0.35 + (i / SEGMENTS) * 0.65})`
+                      : "rgba(239,233,218,0.08)",
+                  opacity: seen || i >= filled ? undefined : 0,
+                }}
+              />
+            ))}
+          </div>
           <span
-            className={`rounded-md border border-bone/20 bg-ink/70 px-2 py-1 text-bone/60 backdrop-blur-[2px] ${seen ? "strip-cell" : "opacity-0"}`}
+            className={`whitespace-nowrap font-mono text-[13px] font-medium text-gold ${seen ? "strip-cell" : "opacity-0"}`}
+            style={seen ? { animationDelay: `${SEGMENTS * 55 + 100}ms` } : undefined}
           >
-            … {earlier} earlier miss{earlier === 1 ? "" : "es"}
+            = {led.pot.toLocaleString("en-US", { maximumFractionDigits: 0 })} SOL and rolling
           </span>
-        )}
-        {cells.map((week, i) => (
-          <span
-            key={week}
-            className={`rounded-md border bg-ink/70 px-2 py-1 backdrop-blur-[2px] ${seen ? "strip-cell" : "opacity-0"}`}
-            style={{
-              ...(seen ? { animationDelay: `${(i + 1) * 120}ms` } : {}),
-              borderColor: `rgba(201,162,39,${0.25 + (i / Math.max(1, shown - 1)) * 0.5})`,
-              color: `rgba(201,162,39,${0.55 + (i / Math.max(1, shown - 1)) * 0.45})`,
-            }}
-          >
-            W{week} {label}
-          </span>
-        ))}
-        <span
-          className={`rounded-md bg-ink/70 px-2 py-1 font-medium text-gold backdrop-blur-[2px] ${seen ? "strip-cell" : "opacity-0"}`}
-          style={seen ? { animationDelay: `${(shown + 1) * 120}ms` } : undefined}
-        >
-          = {led.pot.toLocaleString("en-US", { maximumFractionDigits: 0 })} SOL and rolling
-        </span>
+        </div>
+        <p className="mt-2 font-mono text-[10px] text-bone/60">
+          {led.missWeeks.toLocaleString("en-US")} miss{led.missWeeks === 1 ? "" : "es"} stacked
+          {overflow > 0 && <> ({overflow.toLocaleString("en-US")} beyond the bar</>}
+          {overflow > 0 && <>)</>} · +
+          {led.accrual.toLocaleString("en-US", { maximumFractionDigits: 1 })} SOL per miss —
+          the live demo table&apos;s actual history, same ledger as the hero
+        </p>
       </div>
-      <p className="mt-2 inline-block rounded bg-ink/60 px-1.5 py-0.5 font-mono text-[10px] text-bone/60">
-        the live demo vault&apos;s actual miss history — same ledger as the hero, same
-        parameters as the calculator
-      </p>
     </div>
   );
 }
@@ -131,6 +132,7 @@ export default function S3Mega() {
   const ref = useRef<HTMLElement>(null);
   const { state, stats } = useStats();
   const led = useDemoLedger();
+  const price = useSolPrice();
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -213,9 +215,19 @@ export default function S3Mega() {
           )}
         </div>
         {!megaValue && (
-          <p className="mt-4 max-w-3xl font-display text-2xl font-semibold leading-tight text-gold/80 sm:text-3xl">
-            It grows until someone <span className="whitespace-nowrap">takes it.</span>
-          </p>
+          <>
+            {/* B4: the money, in money — live Pyth dollars beneath the pot;
+                hidden (never stale) when the feed is down. */}
+            {price.usd !== null && (
+              <p className="mt-2 font-mono text-xl text-gold/80 tabular-nums sm:text-2xl">
+                ≈ {fmtUsd(led.pot * price.usd)} at today&apos;s price — one person takes
+                all of it
+              </p>
+            )}
+            <p className="mt-4 max-w-3xl font-display text-2xl font-semibold leading-tight text-gold/80 sm:text-3xl">
+              It grows until someone <span className="whitespace-nowrap">takes it.</span>
+            </p>
+          </>
         )}
 
         <p className="mt-8 max-w-xl text-xl leading-snug text-bone/90 sm:text-2xl">

@@ -269,9 +269,6 @@ export default function HeroOrrery() {
             ) : null}
           </div>
 
-          <div className="absolute bottom-6 left-1/2 z-10 hidden -translate-x-1/2 text-[11px] uppercase tracking-[0.3em] text-bone/40 sm:block">
-            Scroll
-          </div>
         </div>
       </section>
 

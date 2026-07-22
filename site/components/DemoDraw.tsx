@@ -39,6 +39,7 @@ import {
   type RingGeom,
 } from "@/lib/ring";
 import { APP_URL, CTA } from "@/lib/launch";
+import { setWorldDeposit } from "@/lib/world";
 import { track } from "@/lib/analytics";
 import Magnetic from "@/components/Magnetic";
 import CountUp from "@/components/CountUp";
@@ -335,9 +336,13 @@ export function DemoDrawProvider({
   const join = useCallback((amount: number) => {
     if (depositRef.current === null) joinedAtRef.current = performance.now();
     setDeposit(amount);
+    setWorldDeposit(amount); // B1: the world layer's companion orb mirrors this
     track("demo_orb_added", { amount });
   }, []);
-  const leave = useCallback(() => setDeposit(null), []);
+  const leave = useCallback(() => {
+    setDeposit(null);
+    setWorldDeposit(null);
+  }, []);
 
   // Pass 6 #21: is the current orb waiting for the next draw's orbit?
   const getJoinedAfterLock = useCallback(

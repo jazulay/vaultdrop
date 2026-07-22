@@ -56,12 +56,12 @@ export default function S2How() {
   }, []);
 
   return (
-    <section id="how" ref={ref} className="relative bg-ink py-24 sm:py-36">
+    <section id="how" ref={ref} className="relative py-16 sm:py-24">
       <div className="mx-auto max-w-6xl px-6">
         <h2 className="font-display text-4xl font-semibold tracking-tight sm:text-6xl">
           How it works
         </h2>
-        <div className="mt-14 grid gap-10 md:grid-cols-3">
+        <div className="mt-10 grid gap-10 md:grid-cols-3">
           {PANELS.map((p) => (
             <figure key={p.step} className="how-panel">
               {/* §5.3 — poster by default; hover/focus plays on desktop,
